@@ -41,8 +41,7 @@ int main(int argc, char *argv[])
 		}
 		{
 			Data d;
-			std::string str = comm.get_message();
-			d.from_string(str);
+			d.from_string(comm.get_message());
 			std::cout << "Message received." << std::endl;
 			std::cout << d.to_string() << std::endl;
 		}

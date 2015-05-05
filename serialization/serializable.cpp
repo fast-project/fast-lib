@@ -8,6 +8,6 @@ namespace fast
 	}
 	void Serializable::from_string(const std::string &str)
 	{
-		load(YAML::Node(str));
+		load(YAML::Load(str));
 	}
 }
