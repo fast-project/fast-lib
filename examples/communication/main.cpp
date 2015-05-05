@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
-		MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
+		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
 		comm.send_message("Hallo Welt");
 		std::string msg = comm.get_message();
 		std::cout << "Message received:" << msg << std::endl;

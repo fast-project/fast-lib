@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
-		MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
+		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
 		{
 			Data d;
 			d.task = "greet";

@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <cstdlib>
 
+namespace fast {
+
 MQTT_communicator::MQTT_communicator(const std::string &id, 
 				     const std::string &subscribe_topic,
 				     const std::string &publish_topic,
@@ -95,3 +97,5 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 	mosquitto_message_free(&msg);
 	return buf;
 }
+
+} // namespace fast

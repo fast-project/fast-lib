@@ -10,6 +10,8 @@
 #include <condition_variable>
 #include <queue>
 
+namespace fast {
+
 /**
  * \brief A specialized Communicator to provide communication using mqtt framework mosquitto.
  *
@@ -90,4 +92,5 @@ private:
 
 };
 
+} // namespace fast
 #endif

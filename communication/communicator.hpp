@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace fast {
+
 /**
  * \brief An abstract class to provide an interface for communication.
  *
@@ -29,5 +31,7 @@ public:
 	 */
 	virtual std::string get_message() = 0;
 };
+
+} // namespace fast
 
 #endif
