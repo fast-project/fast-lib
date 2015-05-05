@@ -63,7 +63,7 @@ YAML::Node Data::emit() const
 
 void Data::load(const YAML::Node &node)
 {
-	task = node["task"].as<std::string>("idle"); // "idle" is the default value if yaml does not contain the node "task"
-	id = node["data-id"].as<unsigned int>();
-	vms = node["vms"].as<decltype(vms)>(); // decltype: same type as vms
+	fast::load(task, node["task"], "idle"); // "idle" is the default value if yaml does not contain the node "task"
+	fast::load(id, node["data-id"]); // fast::load is like calling "id = node.as<decltype(id)>()"
+	fast::load(vms, node["vms"]);
 }

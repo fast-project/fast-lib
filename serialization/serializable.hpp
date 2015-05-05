@@ -19,7 +19,18 @@ namespace fast
 		virtual std::string to_string() const;
 		virtual void from_string(const std::string &str);
 	};
+
+	template<class T, class S> void load(T &var, const YAML::Node &node, const S &fallback)
+	{
+		var = node.as<T>(fallback);
+	}
+	template<class T> void load(T &var, const YAML::Node &node)
+	{
+		var = node.as<T>();
+	}
 };
+
+
 
 namespace YAML
 {
