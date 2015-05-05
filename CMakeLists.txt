@@ -65,15 +65,20 @@ endif()
 #list(APPEND LIBS "virt")
 
 ### Define source files.
-set(SRC_COMMUNICATION ${PROJECT_SOURCE_DIR}/communication/mqtt_communicator.cpp
-)
-set(SRC_EXAMPLE_COMMUNICATION ${PROJECT_SOURCE_DIR}/examples/communication/main.cpp
-)
+set(SRC_COMMUNICATION ${PROJECT_SOURCE_DIR}/communication/mqtt_communicator.cpp)
+set(SRC_SERIALIZATION ${PROJECT_SOURCE_DIR}/serialization/serializable.cpp)
+set(SRC_EXAMPLE_COMMUNICATION ${PROJECT_SOURCE_DIR}/examples/communication/main.cpp)
+set(SRC_EXAMPLE_COMM_SERIAL ${PROJECT_SOURCE_DIR}/examples/comm_serial/main.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/communication)
+include_directories(${PROJECT_SOURCE_DIR}/serialization)
 
 ### Build and installation targets
 # Add executable
 add_library(fastlib_communication SHARED ${SRC_COMMUNICATION})
+add_library(fastlib_serialization SHARED ${SRC_SERIALIZATION})
 
-add_executable(fastlib_example_communication ${SRC_EXAMPLE_COMMUNICATION} ${SRC_COMMUNICATION})
-target_link_libraries(fastlib_example_communication ${LIBS_COMMUNICATION})
+add_executable(fastlib_example_communication ${SRC_EXAMPLE_COMMUNICATION})
+target_link_libraries(fastlib_example_communication ${LIBS_COMMUNICATION} fastlib_communication)
+
+add_executable(fastlib_example_comm_serial ${SRC_EXAMPLE_COMM_SERIAL})
+target_link_libraries(fastlib_example_comm_serial ${LIBS_COMMUNICATION} ${LIBS_SERIALIZATION} fastlib_communication fastlib_serialization)
