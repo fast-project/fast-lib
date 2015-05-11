@@ -41,15 +41,6 @@ else()
 	message(FATAL_ERROR "yaml-cpp is required.")
 endif()
 
-# Find boost
-find_package(Boost COMPONENTS program_options REQUIRED)
-if(Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIRS})
-	list(APPEND LIBS_SERIALIZATION "${Boost_LIBRARIES}")
-else()
-	message(FATAL_ERROR "Boost::program_options is required.")
-endif()
-
 # Find mosquittopp
 find_package(Mosquittopp REQUIRED)
 if(MOSQUITTOPP_FOUND)
@@ -68,10 +59,6 @@ else()
 	message(FATAL_ERROR "mosquitto is required.")
 endif()
 
-# Find libvirt
-#TODO: Implementation of find_package module for libvirt
-#list(APPEND LIBS "virt")
-
 ### Define source files.
 set(SRC_COMMUNICATION ${PROJECT_SOURCE_DIR}/communication/mqtt_communicator.cpp)
 set(SRC_SERIALIZATION ${PROJECT_SOURCE_DIR}/serialization/serializable.cpp)
@@ -83,10 +70,13 @@ include_directories(${PROJECT_SOURCE_DIR}/serialization)
 ### Build and installation targets
 # Add executable
 add_library(fastlib_communication SHARED ${SRC_COMMUNICATION})
+target_link_libraries(fastlib_communication ${LIBS_COMMUNICATION})
+
 add_library(fastlib_serialization SHARED ${SRC_SERIALIZATION})
+target_link_libraries(fastlib_serialization ${LIBS_SERIALIZATION})
 
 add_executable(fastlib_example_communication ${SRC_EXAMPLE_COMMUNICATION})
-target_link_libraries(fastlib_example_communication ${LIBS_COMMUNICATION} fastlib_communication)
+target_link_libraries(fastlib_example_communication fastlib_communication)
 
 add_executable(fastlib_example_comm_serial ${SRC_EXAMPLE_COMM_SERIAL})
-target_link_libraries(fastlib_example_comm_serial ${LIBS_COMMUNICATION} ${LIBS_SERIALIZATION} fastlib_communication fastlib_serialization)
+target_link_libraries(fastlib_example_comm_serial fastlib_communication fastlib_serialization)

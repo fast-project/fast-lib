@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
+		std::cout << "Starting communicator." << std::endl;
 		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
 		{
 			Data d;
@@ -45,10 +46,12 @@ int main(int argc, char *argv[])
 			d.id = 42;
 			d.vms = {"vm-name-1", "vm-name-2"};
 
+			std::cout << "Sending data message." << std::endl;
 			comm.send_message(d.to_string());
 		}
 		{
 			Data d;
+			std::cout << "Waiting for message." << std::endl;
 			d.from_string(comm.get_message());
 			std::cout << "Message received." << std::endl;
 			std::cout << d.to_string() << std::endl;
