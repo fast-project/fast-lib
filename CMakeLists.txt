@@ -30,6 +30,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
+set(BUILD_SHARED_LIBS ON CACHE BOOL "If ON build shared, else static libraries.")
+
 ### Find libraries
 
 # Find yaml-cpp
@@ -69,10 +71,10 @@ include_directories(${PROJECT_SOURCE_DIR}/serialization)
 
 ### Build and installation targets
 # Add executable
-add_library(fastlib_communication SHARED ${SRC_COMMUNICATION})
+add_library(fastlib_communication ${SRC_COMMUNICATION})
 target_link_libraries(fastlib_communication ${LIBS_COMMUNICATION})
 
-add_library(fastlib_serialization SHARED ${SRC_SERIALIZATION})
+add_library(fastlib_serialization ${SRC_SERIALIZATION})
 target_link_libraries(fastlib_serialization ${LIBS_SERIALIZATION})
 
 add_executable(fastlib_example_communication ${SRC_EXAMPLE_COMMUNICATION})
