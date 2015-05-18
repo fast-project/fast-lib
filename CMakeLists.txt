@@ -35,6 +35,9 @@ set(BUILD_SHARED_LIBS ON CACHE BOOL "If ON build shared, else static libraries."
 ### Find libraries
 
 # Find yaml-cpp
+if(NOT BUILD_SHARED_LIBS)
+	set(YAMLCPP_STATIC_LIBRARY ON)
+endif()
 find_package(YamlCpp REQUIRED)
 if(YAMLCPP_FOUND)
 	include_directories(SYSTEM ${YAMLCPP_INCLUDE_DIR})
