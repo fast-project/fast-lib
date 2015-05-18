@@ -10,8 +10,16 @@
 
 #include <stdexcept>
 #include <cstdlib>
+#include <thread>
+#include <iostream>
 
 namespace fast {
+
+/// Helper function to make error codes readable.
+std::string mosq_err_string(const std::string &str, int code)
+{
+	return str + mosqpp::strerror(code);
+}
 
 MQTT_communicator::MQTT_communicator(const std::string &id, 
 				     const std::string &subscribe_topic,
@@ -25,10 +33,61 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 	publish_topic(publish_topic),
 	host(host), 
 	port(port),
-	keepalive(keepalive)
+	keepalive(keepalive),
+	connected(false)
 {
-	loop_start();
-	connect_async(host.c_str(), port, keepalive);
+	int ret;
+	// Start threaded mosquitto loop
+	if ((ret = loop_start()) != MOSQ_ERR_SUCCESS)
+		throw std::runtime_error(mosq_err_string("Error starting mosquitto loop: ", ret));
+	{	// Connect to MQTT broker. Uses condition variable that is set in on_connect, because
+		// connect_async returning MOSQ_ERR_SUCCESS does not guarantee an established connection.
+		std::unique_lock<std::mutex> lock(connected_mutex);
+		if ((ret = connect_async(host.c_str(), port, keepalive)) != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error connecting to MQTT broker: ", ret));
+		while(!connected_cv.wait_for(lock, std::chrono::seconds(3), [this]{return connected;})) {
+			if ((ret = reconnect_async()) != MOSQ_ERR_SUCCESS)
+				throw std::runtime_error(mosq_err_string("Error connecting to MQTT broker: ", ret));
+		}
+	}
+	// Subscribe to default topic
+	subscribe(nullptr, subscribe_topic.c_str(), 2);
+}
+
+MQTT_communicator::MQTT_communicator(const std::string &id, 
+				     const std::string &subscribe_topic,
+				     const std::string &publish_topic,
+				     const std::string &host, 
+				     int port,
+				     int keepalive,
+				     const std::chrono::duration<double> &timeout) :
+	mosqpp::mosquittopp(id.c_str()),
+	id(id), 
+	subscribe_topic(subscribe_topic),
+	publish_topic(publish_topic),
+	host(host), 
+	port(port),
+	keepalive(keepalive),
+	connected(false)
+{
+	int ret;
+	// Start threaded mosquitto loop
+	if ((ret = loop_start()) != MOSQ_ERR_SUCCESS)
+		throw std::runtime_error(mosq_err_string("Error starting mosquitto loop: ", ret));
+	{ 	// Connect to MQTT broker. Uses condition variable that is set in on_connect, because
+		// connect_async returning MOSQ_ERR_SUCCESS does not guarantee an established connection.
+		auto start = std::chrono::high_resolution_clock::now();
+		std::unique_lock<std::mutex> lock(connected_mutex);
+		if ((ret = connect_async(host.c_str(), port, keepalive)) != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error connecting to MQTT broker: ", ret));
+		while(!connected_cv.wait_for(lock, std::chrono::seconds(3), [this]{return connected;})) {
+			if (std::chrono::high_resolution_clock::now() - start > timeout)
+				throw std::runtime_error("Timeout while trying to connect to MQTT broker.");
+			if ((ret = reconnect_async() != MOSQ_ERR_SUCCESS))
+				throw std::runtime_error(mosq_err_string("Error connecting to MQTT broker: ", ret));
+		}
+	}
+	// Subscribe to default topic
 	subscribe(nullptr, subscribe_topic.c_str(), 2);
 }
 
@@ -41,26 +100,33 @@ MQTT_communicator::~MQTT_communicator()
 void MQTT_communicator::on_connect(int rc)
 {
 	if (rc == 0) {
-//		std::cout << "Connection established to " << host << ":" << port;
+		std::cout << "Connection established to " << host << ":" << port << std::endl;
+		{
+			std::lock_guard<std::mutex> lock(connected_mutex);
+			connected = true;
+		}
+		connected_cv.notify_one();
 	} else {
-//		std::cout << "Error on connect: Code " << rc;
+		std::cout << "Error on connect: " << mosqpp::connack_string(rc) << std::endl;
 	}
 }
 
 void MQTT_communicator::on_disconnect(int rc)
 {
 	if (rc == 0) {
-//		std::cout << "Disconnected from  " << host << ":" << port;
+		std::cout << "Disconnected from  " << host << ":" << port << std::endl;
 	} else {
-//		std::cout << "Unexpected disconnect: Code " << rc;
+		std::cout << mosq_err_string("Unexpected disconnect: ", rc) << std::endl;
 	}
+	std::lock_guard<std::mutex> lock(connected_mutex);
+	connected = false;
 }
 
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
 	mosquitto_message* buf = static_cast<mosquitto_message*>(malloc(sizeof(mosquitto_message)));
 	if (!buf) {
-//		std::cout << "malloc failed allocating mosquitto_message.");
+		std::cout << "malloc failed allocating mosquitto_message." << std::endl;
 	}
 	std::lock_guard<std::mutex> lock(msg_queue_mutex);
 	messages.push(buf);
@@ -78,7 +144,7 @@ void MQTT_communicator::send_message(const std::string &message, const std::stri
 {
 	int ret = publish(nullptr, topic.c_str(), message.size(), message.c_str(), 2, false);
 	if (ret != MOSQ_ERR_SUCCESS)
-		throw std::runtime_error("Error sending message: Code " + std::to_string(ret));
+		throw std::runtime_error(mosq_err_string("Error sending message: ", ret));
 }
 
 std::string MQTT_communicator::get_message()

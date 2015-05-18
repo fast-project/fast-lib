@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 		int keepalive = 60;
 
 		std::cout << "Starting communicator." << std::endl;
-		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
+		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(10));
 		{
 			Data d;
 			d.task = "greet";
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 			std::cout << d.to_string() << std::endl;
 		}
 	} catch (const std::exception &e) {
-		std::cout << "Exception: " << e.what();
+		std::cout << "Exception: " << e.what() << std::endl;
 	}
 	mosqpp::lib_cleanup();
 	return EXIT_SUCCESS;
