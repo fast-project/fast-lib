@@ -17,6 +17,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <chrono>
 
 namespace fast {
 
@@ -36,28 +37,7 @@ public:
 	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
 	 * The async mosquitto loop runs in a seperate thread so callbacks and send_/get_message should be threadsafe.
 	 * Initialize mosquitto before using this class (e.g. using mosqpp::lib_init() and mosqpp::lib_cleanup() in main)
-	 * Establishing a connection is retried every three seconds until success.
-	 * \param id
-	 * \param subscribe_topic The topic to subscribe to.
-	 * \param publish_topic The topic to publish messages to by default.
-	 * \param host The host to connect to.
-	 * \param port The port to connect to.
-	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
-	 */
-	MQTT_communicator(const std::string &id, 
-			  const std::string &subscribe_topic,
-			  const std::string &publish_topic,
-			  const std::string &host, 
-			  int port,
-			  int keepalive);
-	/**
-	 * \brief Constructor for MQTT_communicator.
-	 *
-	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so callbacks and send_/get_message should be threadsafe.
-	 * Initialize mosquitto before using this class (e.g. using mosqpp::lib_init() and mosqpp::lib_cleanup() in main)
-	 * Establishing a connection is retried every three seconds until success or timeout.
-	 * Timeout duration is not accurate, because it is tested after every connection attempt (every three seconds).
+	 * Establishing a connection is retried every second until success or timeout.
 	 * \param id
 	 * \param subscribe_topic The topic to subscribe to.
 	 * \param publish_topic The topic to publish messages to by default.
@@ -72,7 +52,7 @@ public:
 			  const std::string &host, 
 			  int port,
 			  int keepalive,
-			  const std::chrono::duration<double> &timeout);
+			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
 	/**
 	 * \brief Destructor for MQTT_communicator.
 	 *
@@ -112,12 +92,7 @@ private:
 	 */
 	void on_message(const mosquitto_message *msg) override;
 
-	std::string id;
-	std::string subscribe_topic;
 	std::string publish_topic;
-	std::string host;
-	int port;
-	int keepalive;
 
 	std::mutex msg_queue_mutex;
 	std::condition_variable msg_queue_empty_cv;
