@@ -75,7 +75,7 @@ public:
 	/**
 	 * \brief Get a message.
 	 *
-	 * \param duration The time in milliseconds until timeout.
+	 * \param duration The duration until timeout.
 	 */
 	std::string get_message(const std::chrono::duration<double> &duration);
 private:

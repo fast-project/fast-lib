@@ -25,12 +25,41 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
+		std::cout << "Starting communicator." << std::endl;
 		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
-		comm.send_message("Hallo Welt");
-		std::string msg = comm.get_message();
-		std::cout << "Message received:" << msg << std::endl;
+		std::cout << "Communicator started." << std::endl << std::endl;
+		
+		// Sending and receiving
+		{
+			std::cout << "Sending message." << std::endl;
+			comm.send_message("Hallo Welt");
+			std::cout << "Waiting for message." << std::endl;
+			std::string msg = comm.get_message();
+			std::cout << "Message received: " << msg << std::endl << std::endl;
+		}
+
+		// Receiving with timeout
+		{
+			try {
+				std::cout << std::endl << "Sending message." << std::endl;
+				comm.send_message("Hallo Welt");
+				std::cout << "Waiting for message. (3s timeout)" << std::endl;
+				std::string msg = comm.get_message(std::chrono::seconds(3));
+				std::cout << "Message received: " << msg << std::endl << std::endl;
+
+				std::cout << std::endl << "No message this time." << std::endl;
+				std::cout << "Waiting for message. (3s timeout)" << std::endl;
+				msg = comm.get_message(std::chrono::seconds(3));
+				std::cout << "Message received: " << msg << std::endl;
+			} catch (const std::runtime_error &e) {
+				std::cout << "Exception: " << e.what() << std::endl;
+			}
+			std::cout << std::endl;
+		}
 	} catch (const std::exception &e) {
-		std::cout << "Exception: " << e.what();
+		std::cout << "Exception: " << e.what() << std::endl;
+		mosqpp::lib_cleanup();
+		return EXIT_FAILURE;
 	}
 	mosqpp::lib_cleanup();
 	return EXIT_SUCCESS;
