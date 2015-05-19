@@ -16,8 +16,6 @@ int main(int argc, char *argv[])
 {
 	(void)argc;(void)argv;
 	try {
-		mosqpp::lib_init();
-
 		std::string id = "test-id";
 		std::string subscribe_topic = "topic1";
 		std::string publish_topic = "topic1";
@@ -26,7 +24,7 @@ int main(int argc, char *argv[])
 		int keepalive = 60;
 
 		std::cout << "Starting communicator." << std::endl;
-		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
+		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(10));
 		std::cout << "Communicator started." << std::endl << std::endl;
 		
 		// Sending and receiving
@@ -54,13 +52,11 @@ int main(int argc, char *argv[])
 			} catch (const std::runtime_error &e) {
 				std::cout << "Exception: " << e.what() << std::endl;
 			}
-			std::cout << std::endl;
+			std::cout << "The previous timeout exception was expected." << std::endl << std::endl;
 		}
 	} catch (const std::exception &e) {
 		std::cout << "Exception: " << e.what() << std::endl;
-		mosqpp::lib_cleanup();
 		return EXIT_FAILURE;
 	}
-	mosqpp::lib_cleanup();
 	return EXIT_SUCCESS;
 }

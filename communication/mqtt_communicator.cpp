@@ -32,6 +32,10 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 	publish_topic(publish_topic),
 	connected(false)
 {
+	// Initialize mosquitto library if no other instance did
+	if (ref_count++ == 0)
+		mosqpp::lib_init();
+
 	int ret;
 	// Start threaded mosquitto loop
 	if ((ret = loop_start()) != MOSQ_ERR_SUCCESS)
@@ -67,6 +71,8 @@ MQTT_communicator::~MQTT_communicator()
 {
 	disconnect();
 	loop_stop();
+	if (--ref_count == 0)
+		mosqpp::lib_cleanup();
 }
 
 void MQTT_communicator::on_connect(int rc)
@@ -143,5 +149,7 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 	mosquitto_message_free(&msg);
 	return buf;
 }
+
+unsigned int MQTT_communicator::ref_count = 0;
 
 } // namespace fast

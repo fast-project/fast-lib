@@ -101,6 +101,7 @@ private:
 	std::mutex connected_mutex;
 	std::condition_variable connected_cv;
 	bool connected;
+	static unsigned int ref_count;
 };
 
 } // namespace fast
