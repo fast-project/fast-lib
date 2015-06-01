@@ -13,6 +13,7 @@
 
 #include <string>
 #include <type_traits>
+#include <stdexcept>
 
 
 namespace fast
@@ -30,11 +31,17 @@ namespace fast
 
 	template<class T, class S> void load(T &var, const YAML::Node &node, const S &fallback)
 	{
-		var = node.as<T>(fallback);
+		if (node)
+			var = node.as<T>(fallback);
+		else
+			var = fallback;
 	}
 	template<class T> void load(T &var, const YAML::Node &node)
 	{
-		var = node.as<T>();
+		if (node)
+			var = node.as<T>();
+		else
+			throw std::runtime_error("Error loading YAML-node: Node is not valid.");
 	}
 };
 
