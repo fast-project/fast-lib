@@ -6,8 +6,8 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#ifndef SERIALIZABLE_HPP
-#define SERIALIZABLE_HPP
+#ifndef FAST_LIB_SERIALIZABLE_HPP
+#define FAST_LIB_SERIALIZABLE_HPP
 
 #include <yaml-cpp/yaml.h>
 

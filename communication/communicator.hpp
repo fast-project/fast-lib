@@ -6,8 +6,8 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#ifndef COMMUNICATOR_HPP
-#define COMMUNICATOR_HPP
+#ifndef FAST_LIB_COMMUNICATOR_HPP
+#define FAST_LIB_COMMUNICATOR_HPP
 
 #include <string>
 
