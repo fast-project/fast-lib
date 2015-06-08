@@ -8,6 +8,8 @@
 
 #include "mqtt_communicator.hpp"
 
+#include <boost/thread/locks.hpp>
+
 #include <stdexcept>
 #include <cstdlib>
 #include <thread>
@@ -21,6 +23,37 @@ std::string mosq_err_string(const std::string &str, int code)
 	return str + mosqpp::strerror(code);
 }
 
+void MQTT_subscription::add_message(const mosquitto_message *msg)
+{
+	mosquitto_message* buf = nullptr;
+	buf = static_cast<mosquitto_message*>(std::malloc(sizeof(mosquitto_message)));
+	if (!buf)
+		throw std::runtime_error("malloc failed allocating mosquitto_message.");
+	std::lock_guard<std::mutex> lock(msg_queue_mutex);
+	messages.push(buf);
+	mosquitto_message_copy(messages.back(), msg);
+	if (messages.size() == 1)
+		msg_queue_empty_cv.notify_one();
+}
+
+std::string MQTT_subscription::get_message(const std::chrono::duration<double> &duration)
+{
+	std::unique_lock<std::mutex> lock(msg_queue_mutex);
+	if (duration == std::chrono::duration<double>::max()) {
+		// Wait without timeout
+		msg_queue_empty_cv.wait(lock, [this]{return !messages.empty();});
+	} else {
+		// Wait with timeout
+		if (!msg_queue_empty_cv.wait_for(lock, duration, [this]{return !messages.empty();}))
+			throw std::runtime_error("Timeout while waiting for message.");
+	}
+	auto msg = messages.front();
+	messages.pop();
+	std::string buf(static_cast<char*>(msg->payload), msg->payloadlen);
+	mosquitto_message_free(&msg);
+	return buf;
+}
+
 MQTT_communicator::MQTT_communicator(const std::string &id, 
 				     const std::string &subscribe_topic,
 				     const std::string &publish_topic,
@@ -29,7 +62,8 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 				     int keepalive,
 				     const std::chrono::duration<double> &timeout) :
 	mosqpp::mosquittopp(id.c_str()),
-	publish_topic(publish_topic),
+	default_subscribe_topic(subscribe_topic),
+	default_publish_topic(publish_topic),
 	connected(false)
 {
 	// Initialize mosquitto library if no other instance did
@@ -63,16 +97,47 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 			connected_cv.wait(lock, [this]{return connected;});
 		}
 	}
-	// Subscribe to default topic
-	subscribe(nullptr, subscribe_topic.c_str(), 2);
+	// Subscribe to default topic.
+	add_subscription(default_subscribe_topic);
 }
 
 MQTT_communicator::~MQTT_communicator()
 {
+	// Disconnect from MQTT broker.
 	disconnect();
+	// Stop mosquitto loop
 	loop_stop();
+	// Cleanup of mosquitto library if this was the last MQTT_communicator object.
 	if (--ref_count == 0)
 		mosqpp::lib_cleanup();
+}
+
+void MQTT_communicator::add_subscription(const std::string &topic, int qos)
+{
+	{
+		// Get exclusive access (single writer) to add subscription to map.
+		boost::upgrade_lock<boost::shared_mutex> lock(subscription_mutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+		subscriptions.emplace(std::piecewise_construct, std::forward_as_tuple(topic), std::forward_as_tuple());
+	}
+	// Send subscribe to MQTT broker.
+	auto ret = subscribe(nullptr, topic.c_str(), qos);
+	if (ret != MOSQ_ERR_SUCCESS)
+		throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+}
+
+void MQTT_communicator::remove_subscription(const std::string &topic)
+{
+	{
+		// Get exclusive access (single writer) to remove subscription from map.
+		boost::upgrade_lock<boost::shared_mutex> lock(subscription_mutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+		subscriptions.erase(topic);
+	}
+	// Send unsubscribe to MQTT broker.
+	auto ret = unsubscribe(nullptr, topic.c_str());
+	if (ret != MOSQ_ERR_SUCCESS)
+		throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
 }
 
 void MQTT_communicator::on_connect(int rc)
@@ -102,52 +167,52 @@ void MQTT_communicator::on_disconnect(int rc)
 
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
-	mosquitto_message* buf = static_cast<mosquitto_message*>(std::malloc(sizeof(mosquitto_message)));
-	if (!buf) {
-		std::cout << "malloc failed allocating mosquitto_message." << std::endl;
+	try {
+		// Get shared access (multiple reader) to add message to queue.
+		boost::shared_lock<boost::shared_mutex> lock(subscription_mutex);
+		subscriptions.at(msg->topic).add_message(msg);
+	} catch (const std::exception &e) { // Catch exceptions and do nothing to not break mosquitto loop.
+		std::cout << "Exception in on_message: " << e.what() << std::endl;
 	}
-	std::lock_guard<std::mutex> lock(msg_queue_mutex);
-	messages.push(buf);
-	mosquitto_message_copy(messages.back(), msg);
-	if (messages.size() == 1)
-		msg_queue_empty_cv.notify_one();
+
 }
 
 void MQTT_communicator::send_message(const std::string &message)
 {
-	send_message(message, publish_topic);
+	send_message(message, "", 2);
 }
 
-void MQTT_communicator::send_message(const std::string &message, const std::string &topic)
+void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos)
 {
-	int ret = publish(nullptr, topic.c_str(), message.size(), message.c_str(), 2, false);
+	// Use default topic if empty string is passed.
+	auto &real_topic = topic == "" ? default_publish_topic : topic;
+	// Publish message to topic.
+	int ret = publish(nullptr, real_topic.c_str(), message.size(), message.c_str(), qos, false);
 	if (ret != MOSQ_ERR_SUCCESS)
 		throw std::runtime_error(mosq_err_string("Error sending message: ", ret));
 }
 
 std::string MQTT_communicator::get_message()
 {
-	std::unique_lock<std::mutex> lock(msg_queue_mutex);
-	while (messages.empty())
-		msg_queue_empty_cv.wait(lock);
-	mosquitto_message *msg = messages.front();
-	messages.pop();
-	std::string buf(static_cast<char*>(msg->payload), msg->payloadlen);
-	mosquitto_message_free(&msg);
-	return buf;
+	return get_message(default_subscribe_topic, std::chrono::duration<double>::max());
+}
+
+std::string MQTT_communicator::get_message(const std::string &topic)
+{
+	return get_message(topic, std::chrono::duration<double>::max());
 }
 
 std::string MQTT_communicator::get_message(const std::chrono::duration<double> &duration)
 {
-	std::unique_lock<std::mutex> lock(msg_queue_mutex);
-	while (messages.empty())
-		if (msg_queue_empty_cv.wait_for(lock, duration) == std::cv_status::timeout)
-			throw std::runtime_error("Timeout while waiting for message.");
-	mosquitto_message *msg = messages.front();
-	messages.pop();
-	std::string buf(static_cast<char*>(msg->payload), msg->payloadlen);
-	mosquitto_message_free(&msg);
-	return buf;
+	return get_message(default_subscribe_topic, duration);
+}
+
+std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
+{
+	auto &real_topic = topic == "" ? default_publish_topic : topic;
+	// Get shared access (multiple reader) to get message from queue.
+	boost::shared_lock<boost::shared_mutex> lock(subscription_mutex);
+	return subscriptions.at(real_topic).get_message(duration);
 }
 
 unsigned int MQTT_communicator::ref_count = 0;
