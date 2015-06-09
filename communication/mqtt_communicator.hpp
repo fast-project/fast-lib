@@ -12,7 +12,6 @@
 #include "communicator.hpp"
 
 #include <mosquittopp.h>
-#include <boost/thread/shared_mutex.hpp>
 
 #include <string>
 #include <mutex>
@@ -130,8 +129,8 @@ private:
 	std::string default_subscribe_topic;
 	std::string default_publish_topic;
 
-	boost::shared_mutex subscription_mutex; /// \todo: In C++14/17 shared_timed_mutex/shared_mutex should be used.
-	std::unordered_map<std::string, MQTT_subscription> subscriptions;
+	std::unordered_map<std::string, std::shared_ptr<MQTT_subscription>> subscriptions;
+	std::mutex subscriptions_mutex;
 
 	std::mutex connected_mutex;
 	std::condition_variable connected_cv;

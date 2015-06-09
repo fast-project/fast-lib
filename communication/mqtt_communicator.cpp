@@ -8,8 +8,6 @@
 
 #include "mqtt_communicator.hpp"
 
-#include <boost/thread/locks.hpp>
-
 #include <stdexcept>
 #include <cstdlib>
 #include <thread>
@@ -49,6 +47,7 @@ std::string MQTT_subscription::get_message(const std::chrono::duration<double> &
 	}
 	auto msg = messages.front();
 	messages.pop();
+	lock.unlock();
 	std::string buf(static_cast<char*>(msg->payload), msg->payloadlen);
 	mosquitto_message_free(&msg);
 	return buf;
@@ -114,12 +113,10 @@ MQTT_communicator::~MQTT_communicator()
 
 void MQTT_communicator::add_subscription(const std::string &topic, int qos)
 {
-	{
-		// Get exclusive access (single writer) to add subscription to map.
-		boost::upgrade_lock<boost::shared_mutex> lock(subscription_mutex);
-		boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
-		subscriptions.emplace(std::piecewise_construct, std::forward_as_tuple(topic), std::forward_as_tuple());
-	}
+	// Save subscription in unordered_map.
+	std::unique_lock<std::mutex> lock(subscriptions_mutex);
+	subscriptions.emplace(std::make_pair(topic, std::make_shared<MQTT_subscription>()));
+	lock.unlock();
 	// Send subscribe to MQTT broker.
 	auto ret = subscribe(nullptr, topic.c_str(), qos);
 	if (ret != MOSQ_ERR_SUCCESS)
@@ -128,12 +125,11 @@ void MQTT_communicator::add_subscription(const std::string &topic, int qos)
 
 void MQTT_communicator::remove_subscription(const std::string &topic)
 {
-	{
-		// Get exclusive access (single writer) to remove subscription from map.
-		boost::upgrade_lock<boost::shared_mutex> lock(subscription_mutex);
-		boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
-		subscriptions.erase(topic);
-	}
+	// Delete subscription from unordered_map. 
+	// This does not invalidate references used by other threads due to use of shared_ptr.
+	std::unique_lock<std::mutex> lock(subscriptions_mutex);
+	subscriptions.erase(topic);
+	lock.unlock();
 	// Send unsubscribe to MQTT broker.
 	auto ret = unsubscribe(nullptr, topic.c_str());
 	if (ret != MOSQ_ERR_SUCCESS)
@@ -143,10 +139,9 @@ void MQTT_communicator::remove_subscription(const std::string &topic)
 void MQTT_communicator::on_connect(int rc)
 {
 	if (rc == 0) {
-		{
-			std::lock_guard<std::mutex> lock(connected_mutex);
-			connected = true;
-		}
+		std::unique_lock<std::mutex> lock(connected_mutex);
+		connected = true;
+		lock.unlock();
 		connected_cv.notify_one();
 		std::cout << "Connection established." << std::endl;
 	} else {
@@ -168,9 +163,10 @@ void MQTT_communicator::on_disconnect(int rc)
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
 	try {
-		// Get shared access (multiple reader) to add message to queue.
-		boost::shared_lock<boost::shared_mutex> lock(subscription_mutex);
-		subscriptions.at(msg->topic).add_message(msg);
+		std::unique_lock<std::mutex> lock(subscriptions_mutex);
+		auto subscription = subscriptions.at(msg->topic);
+		lock.unlock();
+		subscription->add_message(msg);
 	} catch (const std::exception &e) { // Catch exceptions and do nothing to not break mosquitto loop.
 		std::cout << "Exception in on_message: " << e.what() << std::endl;
 	}
@@ -210,9 +206,10 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
 {
 	auto &real_topic = topic == "" ? default_publish_topic : topic;
-	// Get shared access (multiple reader) to get message from queue.
-	boost::shared_lock<boost::shared_mutex> lock(subscription_mutex);
-	return subscriptions.at(real_topic).get_message(duration);
+	std::unique_lock<std::mutex> lock(subscriptions_mutex);
+	auto &subscription = subscriptions.at(real_topic);
+	lock.unlock();
+	return subscription->get_message(duration);
 }
 
 unsigned int MQTT_communicator::ref_count = 0;

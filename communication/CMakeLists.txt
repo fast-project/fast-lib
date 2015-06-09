@@ -25,15 +25,6 @@ else()
 	message(FATAL_ERROR "mosquitto is required.")
 endif()
 
-# Find boost.thread
-find_package(Boost COMPONENTS system thread REQUIRED)
-if(Boost_FOUND)
-	include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-	list(APPEND LIBS "${Boost_LIBRARIES}")
-else()
-	message(SEND_ERROR "Boost::thread is required.")
-endif()
-
 ### Define source files.
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/mqtt_communicator.cpp)
 
