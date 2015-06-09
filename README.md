@@ -16,17 +16,17 @@ A C++ library for FaST related functionality
 
 ### Build instructions
 * for shared libraries:  
-  ```bash
-  mkdir build && cd build  
-  cmake ..  
-  make  
-  ```
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
 * for static libraries:  
-  ```bash
-  mkdir build && cd build  
-  cmake -DBUILD_SHARED_LIBS=OFF ..  
-  make  
-  ```
+```bash
+mkdir build && cd build
+cmake -DBUILD_SHARED_LIBS=OFF ..
+make
+```
 
 ### Testing
 ```bash
