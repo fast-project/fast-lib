@@ -15,21 +15,21 @@ A C++ library for FaST related functionality
 * yaml-cpp
 
 ### Build instructions
-* for shared libraries:
+* for shared libraries:  
   ```bash
-  mkdir build && cd build
-  cmake ..
-  make
+  mkdir build && cd build  
+  cmake ..  
+  make  
   ```
-* for static libraries:
+* for static libraries:  
   ```bash
-  mkdir build && cd build
-  cmake -DBUILD_SHARED_LIBS=OFF ..
-  make
+  mkdir build && cd build  
+  cmake -DBUILD_SHARED_LIBS=OFF ..  
+  make  
   ```
 
 ### Testing
 ```bash
-mosquitto -d 2> /dev/null
-make test
+mosquitto -d 2> /dev/null  
+make test  
 ```
