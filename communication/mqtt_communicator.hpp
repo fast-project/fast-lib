@@ -25,14 +25,9 @@ namespace fast {
 class MQTT_subscription
 {
 public:
-	void add_message(const mosquitto_message* msg);
-	std::string get_message(const std::chrono::duration<double> &duration = std::chrono::duration<double>::max());
-private:
-	std::mutex msg_queue_mutex;
-	std::condition_variable msg_queue_empty_cv;
-	std::queue<mosquitto_message*> messages; /// \todo Consider using unique_ptr.
+	virtual void add_message(const mosquitto_message *msg) = 0;
+	virtual std::string get_message(const std::chrono::duration<double> &duration) = 0;
 };
-
 
 /**
  * \brief A specialized Communicator to provide communication using mqtt framework mosquitto.
@@ -76,6 +71,10 @@ public:
 	 * \brief Add a subscription to listen on for messages.
 	 */
 	void add_subscription(const std::string &topic, int qos = 2);
+	/**
+	 * \brief Add a subscription with a callback to retrieve messages.
+	 */
+	void add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos = 2);
 	/**
 	 * \brief Remove a subscription.
 	 */
@@ -136,6 +135,28 @@ private:
 	std::condition_variable connected_cv;
 	bool connected;
 	static unsigned int ref_count;
+};
+
+class MQTT_subscription_get : public MQTT_subscription
+{
+public:
+	void add_message(const mosquitto_message *msg) override;
+	std::string get_message(const std::chrono::duration<double> &duration) override;
+private:
+	std::mutex msg_queue_mutex;
+	std::condition_variable msg_queue_empty_cv;
+	std::queue<mosquitto_message*> messages; /// \todo Consider using unique_ptr.
+};
+
+class MQTT_subscription_callback : public MQTT_subscription
+{
+public:
+	MQTT_subscription_callback(std::function<void(std::string)> callback);
+	void add_message(const mosquitto_message *msg) override;
+	std::string get_message(const std::chrono::duration<double> &duration) override;
+private:
+	std::string message;
+	std::function<void(std::string)> callback;
 };
 
 } // namespace fast
