@@ -70,15 +70,13 @@ std::string MQTT_subscription_callback::get_message(const std::chrono::duration<
 	throw std::runtime_error("Error in get_message: This topic is subscribed with callback.");
 }
 
-MQTT_communicator::MQTT_communicator(const std::string &id, 
-				     const std::string &subscribe_topic,
+MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &publish_topic,
-				     const std::string &host, 
+				     const std::string &host,
 				     int port,
 				     int keepalive,
 				     const std::chrono::duration<double> &timeout) :
 	mosqpp::mosquittopp(id.c_str()),
-	default_subscribe_topic(subscribe_topic),
 	default_publish_topic(publish_topic),
 	connected(false)
 {
@@ -113,7 +111,18 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 			connected_cv.wait(lock, [this]{return connected;});
 		}
 	}
+}
+MQTT_communicator::MQTT_communicator(const std::string &id,
+				     const std::string &subscribe_topic,
+				     const std::string &publish_topic,
+				     const std::string &host,
+				     int port,
+				     int keepalive,
+				     const std::chrono::duration<double> &timeout) :
+	MQTT_communicator(id, publish_topic, host, port, keepalive, timeout)
+{
 	// Subscribe to default topic.
+	default_subscribe_topic = subscribe_topic;
 	add_subscription(default_subscribe_topic);
 }
 
@@ -237,9 +246,8 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
 {
 	try {
-		auto &real_topic = topic == "" ? default_publish_topic : topic;
 		std::unique_lock<std::mutex> lock(subscriptions_mutex);
-		auto &subscription = subscriptions.at(real_topic);
+		auto &subscription = subscriptions.at(topic);
 		lock.unlock();
 		return subscription->get_message(duration);
 	} catch (const std::out_of_range &e) {

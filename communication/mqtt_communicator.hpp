@@ -43,9 +43,32 @@ public:
 	 * \brief Constructor for MQTT_communicator.
 	 *
 	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so callbacks and send_/get_message should be threadsafe.
-	 * Initialize mosquitto before using this class (e.g. using mosqpp::lib_init() and mosqpp::lib_cleanup() in main)
+	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
+	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
+	 * and destructor.
 	 * Establishing a connection is retried every second until success or timeout.
+	 * \param id
+	 * \param publish_topic The topic to publish messages to by default.
+	 * \param host The host to connect to.
+	 * \param port The port to connect to.
+	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
+	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10).
+	 */
+	MQTT_communicator(const std::string &id,
+			  const std::string &publish_topic,
+			  const std::string &host,
+			  int port,
+			  int keepalive,
+			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
+	/**
+	 * \brief Constructor for MQTT_communicator.
+	 *
+	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
+	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
+	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
+	 * and destructor.
+	 * Establishing a connection is retried every second until success or timeout.
+	 * This overload also adds an initial subscription to a topic.
 	 * \param id
 	 * \param subscribe_topic The topic to subscribe to.
 	 * \param publish_topic The topic to publish messages to by default.
@@ -54,10 +77,10 @@ public:
 	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
 	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10).
 	 */
-	MQTT_communicator(const std::string &id, 
+	MQTT_communicator(const std::string &id,
 			  const std::string &subscribe_topic,
 			  const std::string &publish_topic,
-			  const std::string &host, 
+			  const std::string &host,
 			  int port,
 			  int keepalive,
 			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
