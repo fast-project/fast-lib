@@ -21,6 +21,35 @@ std::string mosq_err_string(const std::string &str, int code)
 	return str + mosqpp::strerror(code);
 }
 
+class MQTT_subscription
+{
+public:
+	virtual void add_message(const mosquitto_message *msg) = 0;
+	virtual std::string get_message(const std::chrono::duration<double> &duration) = 0;
+};
+
+class MQTT_subscription_get : public MQTT_subscription
+{
+public:
+	void add_message(const mosquitto_message *msg) override;
+	std::string get_message(const std::chrono::duration<double> &duration) override;
+private:
+	std::mutex msg_queue_mutex;
+	std::condition_variable msg_queue_empty_cv;
+	std::queue<mosquitto_message*> messages; /// \todo Consider using unique_ptr.
+};
+
+class MQTT_subscription_callback : public MQTT_subscription
+{
+public:
+	MQTT_subscription_callback(std::function<void(std::string)> callback);
+	void add_message(const mosquitto_message *msg) override;
+	std::string get_message(const std::chrono::duration<double> &duration) override;
+private:
+	std::string message;
+	std::function<void(std::string)> callback;
+};
+
 void MQTT_subscription_get::add_message(const mosquitto_message *msg)
 {
 	mosquitto_message* buf = nullptr;
