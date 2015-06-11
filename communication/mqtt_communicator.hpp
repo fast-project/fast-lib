@@ -14,6 +14,7 @@
 #include <mosquittopp.h>
 
 #include <string>
+#include <memory>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
