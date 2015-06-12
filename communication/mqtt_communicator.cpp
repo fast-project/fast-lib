@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <thread>
 #include <iostream>
+#include <queue>
 
 namespace fast {
 

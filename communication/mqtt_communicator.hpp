@@ -17,7 +17,6 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
-#include <queue>
 #include <unordered_map>
 #include <chrono>
 
@@ -88,22 +87,41 @@ public:
 	~MQTT_communicator();
 	/**
 	 * \brief Add a subscription to listen on for messages.
+	 *
+	 * Adds a subscription on a topic. The messages can be retrieved by calling get_message().
+	 * Messages are queued seperate per topic. Therefore multiple topics can be subscribed simultaneously.
+	 * \param topic The topic to listen on.
+	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
 	void add_subscription(const std::string &topic, int qos = 2);
 	/**
 	 * \brief Add a subscription with a callback to retrieve messages.
+	 *
+	 * Adds a subscription on a topic. On each message that arrives the callback is called with the payload
+	 * string as parameter. All exceptions derived from std::exception are caught if thrown by callback.
+	 * \param topic The topic to listen on.
+	 * \param callback The function to call when a new message arrives on topic.
+	 * \param qos The quality of service (see mosquitto documentation for further information)
 	 */
 	void add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos = 2);
 	/**
 	 * \brief Remove a subscription.
+	 *
+	 * \param topic The topic the subscription was listening on.
 	 */
 	void remove_subscription(const std::string &topic);
 	/**
-	 * \brief Send a message to a specific topic.
+	 * \brief Send a message to the default topic.
+	 *
+	 * \param message The message string to send on the default topic.
 	 */
 	void send_message(const std::string &message) override;
 	/**
 	 * \brief Send a message to a specific topic.
+	 *
+	 * \param message The message string to send on the topic.
+	 * \param topic The topic to send the message on.
+	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
 	void send_message(const std::string &message, const std::string &topic, int qos = 2);
 	/**
