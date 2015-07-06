@@ -7,6 +7,8 @@ Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
 -->
 
 # fast-lib
+[![Build Status](https://travis-ci.org/fast-project/fast-lib.svg?branch=master)](https://travis-ci.org/fast-project/fast-lib)
+
 A C++ library for FaST related functionality
 
 ### Requirements
