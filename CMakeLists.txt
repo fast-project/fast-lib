@@ -58,7 +58,7 @@ include_directories(${libcares_path}/include)
 # Mosquitto
 ExternalProject_Add(libmosquitto
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/mosquitto-1.3.5
-    CONFIGURE_COMMAND  CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake -DWITH_TLS=OFF -DWITH_TLS_PSK=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH=${libcares_path} ${CMAKE_CURRENT_SOURCE_DIR}/vendor/mosquitto-1.3.5
+    CONFIGURE_COMMAND  CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH=${libcares_path} ${CMAKE_CURRENT_SOURCE_DIR}/vendor/mosquitto-1.3.5
     BUILD_IN_SOURCE 0
     BUILD_COMMAND ${MAKE})
 
@@ -85,15 +85,13 @@ ExternalProject_Add(libyaml
     BUILD_IN_SOURCE 0
     BUILD_COMMAND ${MAKE})
 
-#add_dependencies (libyaml ${AllBoostLibs})
-
 # Store libmosquitto variable in directory
 ExternalProject_Get_Property(libyaml install_dir)
 set (libyaml_path ${install_dir})
 include_directories(${libyaml_path}/include)
 ########
 
-set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a)
+set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt)
 
 # Add subdirectories
 add_subdirectory(communication)
