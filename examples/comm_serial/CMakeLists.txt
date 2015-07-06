@@ -14,4 +14,5 @@ include_directories(${PROJECT_SOURCE_DIR})
 # Add executable
 add_executable(fastlib_example_comm_serial ${SRC})
 target_link_libraries(fastlib_example_comm_serial ${FASTLIB_COMMUNICATION} ${FASTLIB_SERIALIZATION})
+target_link_libraries(fastlib_example_comm_serial -lpthread)
 add_test(comm_serial_tests fastlib_example_comm_serial)
