@@ -26,3 +26,6 @@ set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/serializable.cpp)
 # Add library
 add_library(${FASTLIB_SERIALIZATION} ${SRC})
 target_link_libraries(${FASTLIB_SERIALIZATION} ${LIBS})
+install(TARGETS ${FASTLIB_SERIALIZATION}
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

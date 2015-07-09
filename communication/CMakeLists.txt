@@ -32,3 +32,6 @@ set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/mqtt_communicator.cpp)
 # Add library
 add_library(${FASTLIB_COMMUNICATION} ${SRC})
 target_link_libraries(${FASTLIB_COMMUNICATION} ${LIBS})
+install(TARGETS ${FASTLIB_COMMUNICATION}
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)
