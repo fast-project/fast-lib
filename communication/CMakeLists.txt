@@ -38,4 +38,4 @@ install(TARGETS ${FASTLIB_COMMUNICATION}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)
 install(FILES ${HEADERS}
-	DESTINATION include/fast-lib)
+	DESTINATION include/fast-lib/communication)
