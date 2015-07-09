@@ -26,6 +26,8 @@ else()
 endif()
 
 ### Define source files.
+set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/communicator.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/mqtt_communicator.hpp)
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/mqtt_communicator.cpp)
 
 ### Build and installation targets
@@ -35,3 +37,5 @@ target_link_libraries(${FASTLIB_COMMUNICATION} ${LIBS})
 install(TARGETS ${FASTLIB_COMMUNICATION}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)
+install(FILES ${HEADERS}
+	DESTINATION include/fast-lib)

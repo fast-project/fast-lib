@@ -21,6 +21,7 @@ endif()
 
 ### Define source files.
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/serializable.cpp)
+set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/serializable.hpp)
 
 ### Build and installation targets
 # Add library
@@ -29,3 +30,5 @@ target_link_libraries(${FASTLIB_SERIALIZATION} ${LIBS})
 install(TARGETS ${FASTLIB_SERIALIZATION}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)
+install(FILES ${HEADERS}
+	DESTINATION include/fast-lib)
