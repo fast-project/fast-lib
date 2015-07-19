@@ -14,4 +14,5 @@ include_directories(${PROJECT_SOURCE_DIR})
 # Add executable
 add_executable(fastlib_example_communication ${SRC})
 target_link_libraries(fastlib_example_communication ${FASTLIB_COMMUNICATION})
+target_link_libraries(fastlib_example_communication -lpthread)
 add_test(communication_tests fastlib_example_communication)
