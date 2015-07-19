@@ -6,25 +6,6 @@
 # Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
 #
 
-### Find libraries
-# Find mosquittopp
-find_package(Mosquittopp REQUIRED)
-if(MOSQUITTOPP_FOUND)
-	include_directories(SYSTEM ${MOSQUITTOPP_INCLUDE_DIR})
-	list(APPEND LIBS "${MOSQUITTOPP_LIBRARY}")
-else()
-	message(FATAL_ERROR "mosquittopp is required.")
-endif()
-
-# Find mosquitto
-find_package(Mosquitto REQUIRED)
-if(MOSQUITTO_FOUND)
-	include_directories(SYSTEM ${MOSQUITTO_INCLUDE_DIR})
-	list(APPEND LIBS "${MOSQUITTO_LIBRARY}")
-else()
-	message(FATAL_ERROR "mosquitto is required.")
-endif()
-
 ### Define source files.
 set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/communicator.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mqtt_communicator.hpp)
