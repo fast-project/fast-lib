@@ -23,8 +23,8 @@ script:
     - cd build
     - cmake ..
     - make
-    - ./examples/communication/fastlib_example_communication
-    - ./examples/comm_serial/fastlib_example_comm_serial 
+    - travis_retry ./examples/communication/fastlib_example_communication
+    - travis_retry ./examples/comm_serial/fastlib_example_comm_serial 
 
 notifications:
   recipients:
