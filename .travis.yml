@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+    - sp/travis
 
 before_install:
     - travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
