@@ -119,6 +119,37 @@ int main(int argc, char *argv[])
 			std::cout << "Remove subscription on \"topic2\"" << std::endl;
 			comm.remove_subscription("topic3");
 		}
+		std::cout << std::endl;
+		// Wildcard +
+		{
+			// Expected: success
+			std::cout << "Add subscription on \"A/+/B\"." << std::endl;
+			comm.add_subscription("A/+/B");
+			std::cout << "Sending message on \"A/C/B\"." << std::endl;
+			comm.send_message("Hallo Welt", "A/C/B");
+			std::cout << "Waiting for message on \"A/+/B\"." << std::endl;
+			auto msg = comm.get_message("A/+/B", std::chrono::seconds(3));
+			std::cout << "Message received on \"A/+/B\"." << std::endl;
+			if (msg != "Hallo Welt")
+				return EXIT_FAILURE;
+			comm.remove_subscription("A/+/B");
+		}
+		std::cout << std::endl;
+		// Wildcard #
+		{
+			// Expected: success
+			std::cout << "Add subscription on \"A/#\"." << std::endl;
+			comm.add_subscription("A/#");
+			std::cout << "Sending message on \"A/C/B\"." << std::endl;
+			comm.send_message("Hallo Welt", "A/C/B");
+			std::cout << "Waiting for message on \"A/#\"." << std::endl;
+			auto msg = comm.get_message("A/#", std::chrono::seconds(3));
+			std::cout << "Message received on \"A/#\"." << std::endl;
+			if (msg != "Hallo Welt")
+				return EXIT_FAILURE;
+			comm.remove_subscription("A/#");
+		}
+		std::cout << std::endl;
 	} catch (const std::exception &e) {
 		std::cout << "Exception: " << e.what() << std::endl;
 		return EXIT_FAILURE;

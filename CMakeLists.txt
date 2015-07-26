@@ -51,7 +51,7 @@ ExternalProject_Add(libcares
 # Store c-ares install directory in variable
 ExternalProject_Get_Property(libcares install_dir)
 set (libcares_path ${install_dir})
-include_directories(${libcares_path}/include)
+include_directories(SYSTEM ${libcares_path}/include)
 ########
 
 ########
@@ -68,13 +68,13 @@ add_dependencies (libmosquitto libcares)
 # Store libmosquitto variable in directory
 ExternalProject_Get_Property(libmosquitto install_dir)
 set (libmosquitto_path ${install_dir})
-include_directories(${libmosquitto_path}/include)
+include_directories(SYSTEM ${libmosquitto_path}/include)
 ########
 
 ########
 # Boost
 include(vendor/boost/add_boost.cmake)
-include_directories(${BoostSourceDir})
+include_directories(SYSTEM ${BoostSourceDir})
 ########
 
 ########
@@ -88,10 +88,10 @@ ExternalProject_Add(libyaml
 # Store libmosquitto variable in directory
 ExternalProject_Get_Property(libyaml install_dir)
 set (libyaml_path ${install_dir})
-include_directories(${libyaml_path}/include)
+include_directories(SYSTEM ${libyaml_path}/include)
 ########
 
-set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt)
+set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt -lboost_regex)
 
 # Add subdirectories
 add_subdirectory(communication)

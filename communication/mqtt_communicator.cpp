@@ -8,6 +8,8 @@
 
 #include "mqtt_communicator.hpp"
 
+#include <boost/regex.hpp>
+
 #include <stdexcept>
 #include <cstdlib>
 #include <thread>
@@ -230,13 +232,29 @@ void MQTT_communicator::on_disconnect(int rc)
 	connected = false;
 }
 
+boost::regex topic_to_regex(const std::string &topic)
+{
+	// Replace "+" by "\w*"
+	auto regex_topic = boost::regex_replace(topic, boost::regex(R"((\+))"), R"(\\w*)");
+	// Replace "#" by "\w*(?:/\w*)*$"
+	regex_topic = boost::regex_replace(regex_topic, boost::regex(R"((#))"), R"(\\w*(?:/\\w*)*$)");
+	return boost::regex(regex_topic);
+}
+
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
 	try {
+		std::vector<decltype(subscriptions)::mapped_type> matched_subscriptions;
+		// Get all subscriptions matching the topic
 		std::unique_lock<std::mutex> lock(subscriptions_mutex);
-		auto subscription = subscriptions.at(msg->topic);
+		for (auto &subscription : subscriptions) {
+			if (boost::regex_match(msg->topic, topic_to_regex(subscription.first)))
+				matched_subscriptions.push_back(subscription.second);
+		}
 		lock.unlock();
-		subscription->add_message(msg);
+		// Add message to all matched subscriptions
+		for (auto &subscription : matched_subscriptions)
+			subscription->add_message(msg);
 	} catch (const std::exception &e) { // Catch exceptions and do nothing to not break mosquitto loop.
 		std::cout << "Exception in on_message: " << e.what() << std::endl;
 	}
