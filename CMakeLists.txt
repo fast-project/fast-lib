@@ -91,7 +91,7 @@ set (libyaml_path ${install_dir})
 include_directories(SYSTEM ${libyaml_path}/include)
 ########
 
-set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt -lboost_regex)
+set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt ${BoostRegexLibs})
 
 # Add subdirectories
 add_subdirectory(communication)
