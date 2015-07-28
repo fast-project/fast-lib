@@ -73,7 +73,7 @@ include_directories(SYSTEM ${libmosquitto_path}/include)
 
 ########
 # Boost
-include(vendor/boost/add_boost.cmake)
+include(add_boost)
 include_directories(SYSTEM ${BoostSourceDir})
 ########
 
