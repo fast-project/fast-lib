@@ -29,6 +29,7 @@ script:
 notifications:
   recipients:
     - spickartz@eonerc.rwth-aachen.de 
+    - tohliger@eonerc.rwth-aachen.de 
   email:
     on_success: change
     on_failure: always
