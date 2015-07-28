@@ -1,10 +1,6 @@
 External libraries
 ==================
 
-Boost
------
-A cmake script that downloads Boost
-
 c-ares
 ------
 http://c-ares.haxx.se/
