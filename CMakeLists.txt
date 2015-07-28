@@ -75,6 +75,10 @@ include_directories(SYSTEM ${libmosquitto_path}/include)
 # Boost
 include(add_boost)
 include_directories(SYSTEM ${BoostSourceDir})
+add_custom_command(TARGET boost_regex
+	POST_BUILD
+	COMMAND ln -sf ${BoostSourceDir} ${BoostSourceDir}/../boost_src_dir
+	COMMENT "Adding boost src dir symlink.")
 ########
 
 ########
