@@ -29,7 +29,6 @@ script:
 notifications:
   recipients:
     - spickartz@eonerc.rwth-aachen.de 
-    - jbreitbart@gmail.com
   email:
     on_success: change
     on_failure: always
