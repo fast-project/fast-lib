@@ -6,13 +6,14 @@
 # Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
 #
 
+# Default build type: Debug
+set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
 cmake_minimum_required(VERSION 2.8)
 project(fast-lib)
 cmake_policy(SET CMP0026 OLD) # Used to get location of boost libs
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Cache
-set(CMAKE_BUILD_TYPE Debug)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "If ON build shared, else static libraries.")
 if(BUILD_SHARED_LIBS)
 	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
