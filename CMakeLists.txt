@@ -10,7 +10,9 @@
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
 cmake_minimum_required(VERSION 2.8)
 project(fast-lib)
-cmake_policy(SET CMP0026 OLD) # Used to get location of boost libs
+if(POLICY CMP0026)
+	cmake_policy(SET CMP0026 OLD) # Used to get location of boost libs
+endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Cache
