@@ -80,25 +80,19 @@ set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
 # Boost
 include(add_boost)
 include_directories(SYSTEM ${BoostSourceDir})
-#add_custom_command(TARGET boost_regex
-#	POST_BUILD
-#	COMMAND ln -sf ${BoostSourceDir} ${BoostSourceDir}/../boost_src_dir
-#	COMMENT "Adding boost src dir symlink.")
 ########
 
 ########
 # yaml-cpp
 ExternalProject_Add(yaml-cpp
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
-	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT="${BoostSourceDir}" -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
+	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT=${BoostSourceDir} -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
 # Store yaml-cpp variables
 ExternalProject_Get_Property(yaml-cpp install_dir)
 set(YAMLCPP_LIBRARY "${install_dir}/lib/libyaml-cpp.a")
 set(YAMLCPP_INCLUDE_DIR "${install_dir}/include")
 ########
-
-#set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt ${BoostRegexLibs})
 
 # Add support for merging static libraries
 include(MergeStaticLibraries)
