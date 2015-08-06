@@ -57,15 +57,15 @@ ExternalProject_Add(c-ares
 # Store c-ares install directory in variable
 ExternalProject_Get_Property(c-ares install_dir)
 
-set(CARES_LIBRARY ${install_dir}/lib/libcares.a)
-set(CARES_INCLUDE_DIR "${install_dir}/include")
+set(CARES_LIBRARY "${install_dir}/lib/libcares.a")
+set(CARES_PATH "${install_dir}")
 ########
 
 ########
 # mosquitto
 ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
-	CMAKE_ARGS -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_HEADER="${CARES_INCLUDE_DIR}")
+	CMAKE_ARGS -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH="${CARES_PATH}")
 
 # Make sure mosquitto depends on c-ares
 add_dependencies (mosquitto c-ares)
