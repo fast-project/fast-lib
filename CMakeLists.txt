@@ -59,6 +59,9 @@ ExternalProject_Get_Property(c-ares install_dir)
 
 set(CARES_LIBRARY "${install_dir}/lib/libcares.a")
 set(CARES_PATH "${install_dir}")
+
+# Install headers
+install(DIRECTORY "${CARES_PATH}/include/" DESTINATION include/fast-lib/external)
 ########
 
 ########
@@ -74,12 +77,18 @@ add_dependencies (mosquitto c-ares)
 ExternalProject_Get_Property(mosquitto install_dir)
 set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a ${CARES_LIBRARY}) 
 set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
+
+# Install headers
+install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
 ########
 # Boost
 include(add_boost)
 include_directories(SYSTEM ${BoostSourceDir})
+
+# Install headers
+install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
 ########
 
 ########
@@ -92,6 +101,9 @@ ExternalProject_Add(yaml-cpp
 ExternalProject_Get_Property(yaml-cpp install_dir)
 set(YAMLCPP_LIBRARY "${install_dir}/lib/libyaml-cpp.a")
 set(YAMLCPP_INCLUDE_DIR "${install_dir}/include")
+
+# Install headers
+install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
 # Add support for merging static libraries

@@ -8,7 +8,12 @@
 
 ### Define source files.
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
+# Include directories
 include_directories(${PROJECT_SOURCE_DIR})
+include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
+include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
+
 
 ### Build and installation targets
 # Add executable
