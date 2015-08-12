@@ -11,24 +11,16 @@ Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
 
 A C++ library for FaST related functionality
 
-### Requirements
-* mosquitto
-* mosquittopp
-* yaml-cpp
-
 ### Build instructions
-* for shared libraries:  
+Static libraries can be built with:
 ```bash
 mkdir build && cd build
 cmake ..
 make
 ```
-* for static libraries:  
-```bash
-mkdir build && cd build
-cmake -DBUILD_SHARED_LIBS=OFF ..
-make
-```
+
+When linking the libraries in an executable librt has to be linked in after that (-lrt).
+For an example using fast-lib with cmake see fast-project/migration-framework repository.
 
 ### Testing
 ```bash
