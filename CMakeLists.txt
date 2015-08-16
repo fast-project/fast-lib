@@ -6,12 +6,20 @@
 # Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
 #
 
+# Default build type: Debug
+set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
 cmake_minimum_required(VERSION 2.8)
 project(fast-lib)
+if(POLICY CMP0026)
+	cmake_policy(SET CMP0026 OLD) # Used to get location of boost libs
+endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Cache
-set(BUILD_SHARED_LIBS ON CACHE BOOL "If ON build shared, else static libraries.")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "If ON build shared, else static libraries.")
+if(BUILD_SHARED_LIBS)
+	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
+endif()
 
 # Library names
 set(FASTLIB_COMMUNICATION "fastlib_communication")
@@ -41,61 +49,65 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 include(ExternalProject)
 
 ########
-# C-ares
-ExternalProject_Add(libcares
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/c-ares-1.10.0
-    CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/vendor/c-ares-1.10.0/configure --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER}
-    BUILD_IN_SOURCE 0
-    BUILD_COMMAND ${MAKE})
+# c-ares
+ExternalProject_Add(c-ares
+	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/c-ares-1.10.0
+	CONFIGURE_COMMAND ${PROJECT_SOURCE_DIR}/vendor/c-ares-1.10.0/configure --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER})
 
 # Store c-ares install directory in variable
-ExternalProject_Get_Property(libcares install_dir)
-set (libcares_path ${install_dir})
-include_directories(SYSTEM ${libcares_path}/include)
+ExternalProject_Get_Property(c-ares install_dir)
+
+set(CARES_LIBRARY "${install_dir}/lib/libcares.a")
+set(CARES_PATH "${install_dir}")
+
+# Install headers
+install(DIRECTORY "${CARES_PATH}/include/" DESTINATION include/fast-lib/external)
 ########
 
 ########
-# Mosquitto
-ExternalProject_Add(libmosquitto
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/mosquitto-1.3.5
-    CONFIGURE_COMMAND  CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH=${libcares_path} ${CMAKE_CURRENT_SOURCE_DIR}/vendor/mosquitto-1.3.5
-    BUILD_IN_SOURCE 0
-    BUILD_COMMAND ${MAKE})
+# mosquitto
+ExternalProject_Add(mosquitto
+	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
+	CMAKE_ARGS -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH=${CARES_PATH})
 
-# Make sure mosquitto depends on libcares
-add_dependencies (libmosquitto libcares)
+# Make sure mosquitto depends on c-ares
+add_dependencies (mosquitto c-ares)
 
-# Store libmosquitto variable in directory
-ExternalProject_Get_Property(libmosquitto install_dir)
-set (libmosquitto_path ${install_dir})
-include_directories(SYSTEM ${libmosquitto_path}/include)
+# Store mosquitto variables
+ExternalProject_Get_Property(mosquitto install_dir)
+set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a ${CARES_LIBRARY}) 
+set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
+
+# Install headers
+install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
 ########
 # Boost
 include(add_boost)
 include_directories(SYSTEM ${BoostSourceDir})
-add_custom_command(TARGET boost_regex
-	POST_BUILD
-	COMMAND ln -sf ${BoostSourceDir} ${BoostSourceDir}/../boost_src_dir
-	COMMENT "Adding boost src dir symlink.")
+
+# Install headers
+install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
 ########
 
 ########
-# Yaml-Cpp
-ExternalProject_Add(libyaml
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
-    CONFIGURE_COMMAND  CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT=${BoostSourceDir} -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
-    BUILD_IN_SOURCE 0
-    BUILD_COMMAND ${MAKE})
+# yaml-cpp
+ExternalProject_Add(yaml-cpp
+	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
+	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT=${BoostSourceDir} -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
-# Store libmosquitto variable in directory
-ExternalProject_Get_Property(libyaml install_dir)
-set (libyaml_path ${install_dir})
-include_directories(SYSTEM ${libyaml_path}/include)
+# Store yaml-cpp variables
+ExternalProject_Get_Property(yaml-cpp install_dir)
+set(YAMLCPP_LIBRARY "${install_dir}/lib/libyaml-cpp.a")
+set(YAMLCPP_INCLUDE_DIR "${install_dir}/include")
+
+# Install headers
+install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
-set (LIBS ${libmosquitto_path}/lib/libmosquittopp.a ${libmosquitto_path}/lib/libmosquitto.a ${libcares_path}/lib/libcares.a ${libyaml_path}/lib/libyaml-cpp.a -lrt ${BoostRegexLibs})
+# Add support for merging static libraries
+include(MergeStaticLibraries)
 
 # Add subdirectories
 add_subdirectory(communication)
