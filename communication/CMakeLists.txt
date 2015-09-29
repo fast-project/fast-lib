@@ -23,10 +23,18 @@ include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
 add_library(${FASTLIB_COMMUNICATION} ${SRC})
 
 # Merge with dependent libraries
-add_dependencies(${FASTLIB_COMMUNICATION} ${BoostRegexLibs})
+add_dependencies(${FASTLIB_COMMUNICATION} ${BoostRegexLibs} ${BoostLogLibs})
 get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
-set(LIBS ${MOSQUITTO_LIBRARIES} ${BOOST_REGEX_LIBRARY})
+get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
+get_property(BOOST_CHRONO_LIBRARY TARGET ${BoostChronoLibs} PROPERTY LOCATION) # dependency of boost.log
+get_property(BOOST_DATE_TIME_LIBRARY TARGET ${BoostDateTimeLibs} PROPERTY LOCATION) # dependency of boost.log
+get_property(BOOST_FILESYSTEM_LIBRARY TARGET ${BoostFilesystemLibs} PROPERTY LOCATION) # dependency of boost.log
+get_property(BOOST_THREAD_LIBRARY TARGET ${BoostThreadLibs} PROPERTY LOCATION) # dependency of boost.log
+get_property(BOOST_SYSTEM_LIBRARY TARGET ${BoostSystemLibs} PROPERTY LOCATION) # dependency of boost.log
+set(LIBS ${MOSQUITTO_LIBRARIES} ${BOOST_REGEX_LIBRARY} ${BOOST_LOG_LIBRARY} ${BOOST_CHRONO_LIBRARY} ${BOOST_DATE_TIME_LIBRARY} ${BOOST_FILESYSTEM_LIBRARY} ${BOOST_THREAD_LIBRARY} ${BOOST_SYSTEM_LIBRARY})
 MERGE_STATIC_LIBRARIES(${FASTLIB_COMMUNICATION} ALL "${LIBS}")
+# As librt should always be available it is linked dynamically and therefore has to be linked in applications
+# that use fast-lib as well.
 target_link_libraries(${FASTLIB_COMMUNICATION} -lrt)
 
 # Install

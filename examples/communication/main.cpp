@@ -8,9 +8,10 @@
 
 #include "communication/mqtt_communicator.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <cstdlib>
 #include <exception>
-#include <iostream>
 #include <thread>
 
 int main(int argc, char *argv[])
@@ -24,134 +25,148 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
-		std::cout << "Starting communicator." << std::endl;
 		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(5));
-		std::cout << "Communicator started." << std::endl << std::endl;
 		
-		// Sending and receiving
+		BOOST_LOG_TRIVIAL(info) << "Send and receive test.";
 		{
 			// Expected: success
-			std::cout << "Sending message." << std::endl;
 			comm.send_message("Hallo Welt");
-			std::cout << "Waiting for message." << std::endl;
 			std::string msg = comm.get_message();
-			std::cout << "Message received: " << msg << std::endl;
-			if (msg != "Hallo Welt")
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 				return EXIT_FAILURE;
+			}
 		}
-		std::cout << std::endl;
-		// Receiving with timeout
+		BOOST_LOG_TRIVIAL(info) << "Receive with timeout test.";
 		{
 			try {
 				// Expected: success
-				std::cout << std::endl << "Sending message." << std::endl;
 				comm.send_message("Hallo Welt");
-				std::cout << "Waiting for message. (3s timeout)" << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "Waiting for message. (3s timeout)";
 				std::string msg = comm.get_message(std::chrono::seconds(3));
-				std::cout << "Message received: " << msg << std::endl << std::endl;
-				if (msg != "Hallo Welt")
+				if (msg != "Hallo Welt") {
+					BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+					BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 					return EXIT_FAILURE;
+				}
 
 				// Expected: timeout
-				std::cout << std::endl << "No message this time." << std::endl;
-				std::cout << "Waiting for message. (3s timeout)" << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "No message this time.";
+				BOOST_LOG_TRIVIAL(debug) << "Waiting for message. (3s timeout)";
 				msg = comm.get_message(std::chrono::seconds(3));
-				return EXIT_FAILURE; // Should not be reached due to timeout exception.
+				BOOST_LOG_TRIVIAL(debug) << "This output should not be reached due to timeout exception.";
+				return EXIT_FAILURE;
 			} catch (const std::runtime_error &e) {
-				if (e.what() != std::string("Timeout while waiting for message."))
+				if (e.what() != std::string("Timeout while waiting for message.")) {
+					BOOST_LOG_TRIVIAL(debug) << "Expected timeout exception but another exception was thrown.";
 					return EXIT_FAILURE;
+				}
 			}
 		}
-		std::cout << std::endl;
-		// Add and remove subscription
+		BOOST_LOG_TRIVIAL(info) << "Add and remove subscription test.";
 		{
 			// Expected: success
-			std::cout << "Add subscription on \"topic2\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Add subscription on \"topic2\".";
 			comm.add_subscription("topic2");
-			std::cout << "Sending message on \"topic2\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Sending message on \"topic2\".";
 			comm.send_message("Hallo Welt", "topic2");
-			std::cout << "Waiting for message on \"topic2\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Waiting for message on \"topic2\".";
 			std::string msg = comm.get_message("topic2");
-			std::cout << "Message received on \"topic2\": " << msg << std::endl << std::endl;
-			if (msg != "Hallo Welt")
+			BOOST_LOG_TRIVIAL(debug) << "Message received on \"topic2\". ";
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 				return EXIT_FAILURE;
+			}
 
 			// Expected: missing subscription
-			std::cout << "Remove subscription on \"topic2\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Remove subscription on \"topic2\".";
 			comm.remove_subscription("topic2");
 			try {
-				std::cout << "Sending message on \"topic2\"." << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "Sending message on \"topic2\".";
 				comm.send_message("Hallo Welt", "topic2");
-				std::cout << "Waiting for message on \"topic2\"." << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "Waiting for message on \"topic2\".";
 				std::string msg = comm.get_message("topic2", std::chrono::seconds(1));
-				return EXIT_FAILURE; // Should not be reached due to missing subscription.
+				BOOST_LOG_TRIVIAL(debug) << "This output should not be reached due to topic-not-found exception.";
+				return EXIT_FAILURE;
 			} catch (const std::out_of_range &e) {
-				if (e.what() != std::string("Topic not found in subscriptions."))
+				if (e.what() != std::string("Topic not found in subscriptions.")) {
+					BOOST_LOG_TRIVIAL(debug) << "Expected topic-not-found exception but another exception was thrown.";
 					return EXIT_FAILURE;
+				}
 			}
 		}
-		std::cout << std::endl;
-		// Add subscription with callback
+		BOOST_LOG_TRIVIAL(info) << "Add subscription with callback test.";
 		{
 			// Expected: success
 			std::string msg;
-			std::cout << "Add subscription on \"topic3\" with callback." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Add subscription on \"topic3\" with callback.";
 			comm.add_subscription("topic3", [&msg](std::string received_msg) {
-					std::cout << "Received in callback: " << received_msg << std::endl;
+					BOOST_LOG_TRIVIAL(debug) << "Received in callback: " << received_msg;
 					msg = std::move(received_msg);
 			});
-			std::cout << "Sending message on \"topic3\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Sending message on \"topic3\".";
 			comm.send_message("Hallo Welt", "topic3");
 			std::this_thread::sleep_for(std::chrono::seconds(1));
-			if (msg != "Hallo Welt")
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 				return EXIT_FAILURE;
-			std::cout << "Message received on \"topic3\": " << msg << std::endl << std::endl;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "Message received on \"topic3\".";
 
 			// Expected: cannot get_message from subscription with callback
 			try {
-				std::cout << "Try to get message from topic with callback." << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "Try to get message from topic with callback.";
 				comm.get_message("topic3");
+				BOOST_LOG_TRIVIAL(debug) << "This output should not be reached due to wrong-subscription-type exception.";
 				return EXIT_FAILURE;
 			} catch (const std::runtime_error &e) {
-				if (e.what() != std::string("Error in get_message: This topic is subscribed with callback."))
+				if (e.what() != std::string("Error in get_message: This topic is subscribed with callback.")) {
+					BOOST_LOG_TRIVIAL(debug) << "Expected wrong-subscription-type exception but another exception was thrown.";
 					return EXIT_FAILURE;
+				}
 			}
-			std::cout << "Remove subscription on \"topic2\"" << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Remove subscription on \"topic2\"";
 			comm.remove_subscription("topic3");
 		}
-		std::cout << std::endl;
-		// Wildcard +
+		BOOST_LOG_TRIVIAL(info) << "Wildcard + test.";
 		{
 			// Expected: success
-			std::cout << "Add subscription on \"A/+/B\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Add subscription on \"A/+/B\".";
 			comm.add_subscription("A/+/B");
-			std::cout << "Sending message on \"A/C/B\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Sending message on \"A/C/B\".";
 			comm.send_message("Hallo Welt", "A/C/B");
-			std::cout << "Waiting for message on \"A/+/B\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Waiting for message on \"A/+/B\".";
 			auto msg = comm.get_message("A/+/B", std::chrono::seconds(3));
-			std::cout << "Message received on \"A/+/B\"." << std::endl;
-			if (msg != "Hallo Welt")
+			BOOST_LOG_TRIVIAL(debug) << "Message received on \"A/+/B\".";
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 				return EXIT_FAILURE;
+			}
 			comm.remove_subscription("A/+/B");
 		}
-		std::cout << std::endl;
-		// Wildcard #
+		BOOST_LOG_TRIVIAL(info) << "Wildcard # test.";
 		{
 			// Expected: success
-			std::cout << "Add subscription on \"A/#\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Add subscription on \"A/#\".";
 			comm.add_subscription("A/#");
-			std::cout << "Sending message on \"A/C/B\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Sending message on \"A/C/B\".";
 			comm.send_message("Hallo Welt", "A/C/B");
-			std::cout << "Waiting for message on \"A/#\"." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Waiting for message on \"A/#\".";
 			auto msg = comm.get_message("A/#", std::chrono::seconds(3));
-			std::cout << "Message received on \"A/#\"." << std::endl;
-			if (msg != "Hallo Welt")
+			BOOST_LOG_TRIVIAL(debug) << "Message received on \"A/#\".";
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
 				return EXIT_FAILURE;
+			}
 			comm.remove_subscription("A/#");
 		}
-		std::cout << std::endl;
 	} catch (const std::exception &e) {
-		std::cout << "Exception: " << e.what() << std::endl;
+		BOOST_LOG_TRIVIAL(debug) << "Exception: " << e.what();
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
