@@ -49,33 +49,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 include(ExternalProject)
 
 ########
-# c-ares
-ExternalProject_Add(c-ares
-	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/c-ares-1.10.0
-	CONFIGURE_COMMAND ${PROJECT_SOURCE_DIR}/vendor/c-ares-1.10.0/configure --prefix=<INSTALL_DIR> CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER})
-
-# Store c-ares install directory in variable
-ExternalProject_Get_Property(c-ares install_dir)
-
-set(CARES_LIBRARY "${install_dir}/lib/libcares.a")
-set(CARES_PATH "${install_dir}")
-
-# Install headers
-install(DIRECTORY "${CARES_PATH}/include/" DESTINATION include/fast-lib/external)
-########
-
-########
 # mosquitto
 ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
-	CMAKE_ARGS -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic -DARES_PATH=${CARES_PATH})
-
-# Make sure mosquitto depends on c-ares
-add_dependencies (mosquitto c-ares)
+	CMAKE_ARGS -DWITH_SRV=OFF -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic)
 
 # Store mosquitto variables
 ExternalProject_Get_Property(mosquitto install_dir)
-set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a ${CARES_LIBRARY}) 
+set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a) 
 set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
 
 # Install headers

@@ -9,9 +9,10 @@
 #include "communication/mqtt_communicator.hpp"
 #include "serialization/serializable.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <cstdlib>
 #include <exception>
-#include <iostream>
 
 // Inherit from fast::Serializable
 struct Data : fast::Serializable
@@ -36,32 +37,30 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
-		std::cout << "Starting communicator." << std::endl;
 		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive);
-		{
-			Data d;
-			d.task = "greet";
-			d.id = 42;
-			d.vms = {"vm-name-1", "vm-name-2"};
 
-			std::cout << "Sending data message." << std::endl;
-			comm.send_message(d.to_string());
-		}
-		{
-			Data d;
-			std::cout << "Waiting for message." << std::endl;
-			d.from_string(comm.get_message());
-			std::cout << "Message received." << std::endl;
-			std::cout << d.to_string() << std::endl;
+		Data d1;
+		d1.task = "greet";
+		d1.id = 42;
+		d1.vms = {"vm-name-1", "vm-name-2"};
+		comm.send_message(d1.to_string());
+
+		Data d2;
+		d2.from_string(comm.get_message());
+		if (d2.task != d2.task || d1.id != d2.id || d1.vms.size() != d2.vms.size()) {
+			BOOST_LOG_TRIVIAL(info) << "Received data is corrupt.";
+			return EXIT_FAILURE;
 		}
 	} catch (const std::exception &e) {
-		std::cout << "Exception: " << e.what() << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Exception: " << e.what();
+		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
 }
 
 YAML::Node Data::emit() const
 {
+	BOOST_LOG_TRIVIAL(info) << "Emitting data to node.";
 	YAML::Node node;
 	node["task"] = task;
 	node["data-id"] = id;
@@ -71,6 +70,7 @@ YAML::Node Data::emit() const
 
 void Data::load(const YAML::Node &node)
 {
+	BOOST_LOG_TRIVIAL(info) << "Loading data from node.";
 	fast::load(task, node["task"], "idle"); // "idle" is the default value if yaml does not contain the node "task"
 	fast::load(id, node["data-id"]); // fast::load is like calling "id = node.as<decltype(id)>()"
 	fast::load(vms, node["vms"]);
