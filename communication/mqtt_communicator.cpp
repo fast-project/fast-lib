@@ -9,12 +9,27 @@
 #include "mqtt_communicator.hpp"
 
 #include <boost/regex.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <stdexcept>
 #include <cstdlib>
 #include <thread>
 #include <queue>
+
+#ifdef FASTLIB_ENABLE_LOGGING
+	#include <boost/log/trivial.hpp>
+	#define FASTLIB_LOG(level) BOOST_LOG_TRIVIAL(level)
+#else
+	namespace fast {
+		class Dev_null
+		{
+		} dev_null;
+		template<typename T> Dev_null & operator<<(Dev_null &dest, T)
+		{
+			return dest;
+		}
+	}
+	#define FASTLIB_LOG(level) dev_null
+#endif
 
 namespace fast {
 
@@ -107,51 +122,18 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &host,
 				     int port,
 				     int keepalive,
-				     const std::chrono::duration<double> &timeout) :
+				     const timeout_duration_t &timeout) :
 	mosqpp::mosquittopp(id.c_str()),
 	default_publish_topic(publish_topic),
 	connected(false)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Constructing MQTT_communicator.";
+	FASTLIB_LOG(trace) << "Constructing MQTT_communicator.";
 
-	BOOST_LOG_TRIVIAL(trace) << "Initialize mosquitto library if no other instance did.";
-	if (ref_count++ == 0)
-		mosqpp::lib_init();
+	init_mosq_lib();
+	start_mosq_loop();
+	connect_to_broker(host, port, keepalive, timeout);
 
-	BOOST_LOG_TRIVIAL(trace) << "Start threaded mosquitto loop";
-	int ret;
-	if ((ret = loop_start()) != MOSQ_ERR_SUCCESS)
-		throw std::runtime_error(mosq_err_string("Error starting mosquitto loop: ", ret));
-
-
-	BOOST_LOG_TRIVIAL(trace) << "Connect to MQTT broker.";
-	// Connect to MQTT broker. Uses condition variable that is set in on_connect, because
-	// (re-)connect returning MOSQ_ERR_SUCCESS does not guarantee an fully established connection.
-	{
-		auto start = std::chrono::high_resolution_clock::now();
-		ret = connect(host.c_str(), port, keepalive); 
-		BOOST_LOG_TRIVIAL(trace) << "Called connect api call.";
-		while (ret != MOSQ_ERR_SUCCESS) {
-			BOOST_LOG_TRIVIAL(trace) << mosq_err_string("Failed connecting to MQTT broker: ", ret);
-			if (std::chrono::high_resolution_clock::now() - start > timeout)
-				throw std::runtime_error("Timeout while trying to connect to MQTT broker.");
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-			BOOST_LOG_TRIVIAL(trace) << "Retry connecting.";
-			ret = reconnect();
-		}
-		BOOST_LOG_TRIVIAL(trace) << "Waiting for on_connect callback to signal success.";
-		std::unique_lock<std::mutex> lock(connected_mutex);
-		auto time_left = timeout - (std::chrono::high_resolution_clock::now() - start);
-		// Branch between wait and wait_for because if time_left is max wait_for does not work 
-		// (waits until now + max -> overflow?).
-		if (time_left != std::chrono::duration<double>::max()) {
-			if (!connected_cv.wait_for(lock, time_left, [this]{return connected;}))
-				throw std::runtime_error("Timeout while trying to connect to MQTT broker.");
-		} else {
-			connected_cv.wait(lock, [this]{return connected;});
-		}
-	}
-	BOOST_LOG_TRIVIAL(trace) << "MQTT_communicator constructed.";
+	FASTLIB_LOG(trace) << "MQTT_communicator constructed.";
 }
 MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &subscribe_topic,
@@ -159,27 +141,29 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &host,
 				     int port,
 				     int keepalive,
-				     const std::chrono::duration<double> &timeout) :
+				     const timeout_duration_t &timeout) :
 	MQTT_communicator(id, publish_topic, host, port, keepalive, timeout)
 {
 	// Subscribe to default topic.
-	BOOST_LOG_TRIVIAL(trace) << "Adding default subscription.";
+	FASTLIB_LOG(trace) << "Adding default subscription.";
 	default_subscribe_topic = subscribe_topic;
 	add_subscription(default_subscribe_topic);
-	BOOST_LOG_TRIVIAL(trace) << "Default subscription added.";
+	FASTLIB_LOG(trace) << "Default subscription added.";
 }
 
 MQTT_communicator::~MQTT_communicator()
 {
-	BOOST_LOG_TRIVIAL(trace) << "Destructing MQTT_communicator.";
-	// Disconnect from MQTT broker.
-	disconnect();
-	// Stop mosquitto loop
-	loop_stop();
-	// Cleanup of mosquitto library if this was the last MQTT_communicator object.
-	if (--ref_count == 0)
-		mosqpp::lib_cleanup();
-	BOOST_LOG_TRIVIAL(trace) << "MQTT_communicator destructed.";
+	FASTLIB_LOG(trace) << "Destructing MQTT_communicator.";
+	try {
+		disconnect_from_broker();
+		stop_mosq_loop();
+		cleanup_mosq_lib();
+	} catch(const std::exception &e) {
+		FASTLIB_LOG(warning) << e.what();
+	} catch(...) {
+		FASTLIB_LOG(warning) << "Something was thrown.";
+	}
+	FASTLIB_LOG(trace) << "MQTT_communicator destructed.";
 }
 
 void MQTT_communicator::add_subscription(const std::string &topic, int qos)
@@ -210,7 +194,7 @@ void MQTT_communicator::add_subscription(const std::string &topic, std::function
 
 void MQTT_communicator::remove_subscription(const std::string &topic)
 {
-	// Delete subscription from unordered_map. 
+	// Delete subscription from unordered_map.
 	// This does not invalidate references used by other threads due to use of shared_ptr.
 	std::unique_lock<std::mutex> lock(subscriptions_mutex);
 	subscriptions.erase(topic);
@@ -223,31 +207,31 @@ void MQTT_communicator::remove_subscription(const std::string &topic)
 
 void MQTT_communicator::on_connect(int rc)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Callback: on_connect(" << std::to_string(rc) << ")";
+	FASTLIB_LOG(trace) << "Callback: on_connect(" << std::to_string(rc) << ")";
 	if (rc == 0) {
-		BOOST_LOG_TRIVIAL(trace) << "Setting connected flag and notify constructor.";
+		FASTLIB_LOG(trace) << "Setting connected flag and notify constructor.";
 		std::unique_lock<std::mutex> lock(connected_mutex);
 		connected = true;
 		lock.unlock();
 		connected_cv.notify_one();
-		BOOST_LOG_TRIVIAL(trace) << "Connected flag is set and constructor is notified.";
+		FASTLIB_LOG(trace) << "Connected flag is set and constructor is notified.";
 	} else {
-		BOOST_LOG_TRIVIAL(trace) << "Error on connect: " << mosqpp::connack_string(rc);
+		FASTLIB_LOG(trace) << "Error on connect: " << mosqpp::connack_string(rc);
 	}
 }
 
 void MQTT_communicator::on_disconnect(int rc)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Callback: on_disconnect(" << std::to_string(rc) << ")";
+	FASTLIB_LOG(trace) << "Callback: on_disconnect(" << std::to_string(rc) << ")";
 	if (rc == 0) {
-		BOOST_LOG_TRIVIAL(trace) << "Disconnected.";
+		FASTLIB_LOG(trace) << "Disconnected.";
 	} else {
-		BOOST_LOG_TRIVIAL(trace) << mosq_err_string("Unexpected disconnect: ", rc);
+		FASTLIB_LOG(trace) << mosq_err_string("Unexpected disconnect: ", rc);
 	}
-	BOOST_LOG_TRIVIAL(trace) << "Unsetting connected flag.";
+	FASTLIB_LOG(trace) << "Unsetting connected flag.";
 	std::lock_guard<std::mutex> lock(connected_mutex);
 	connected = false;
-	BOOST_LOG_TRIVIAL(trace) << "Connected flag is unset.";
+	FASTLIB_LOG(trace) << "Connected flag is unset.";
 }
 
 boost::regex topic_to_regex(const std::string &topic)
@@ -261,7 +245,7 @@ boost::regex topic_to_regex(const std::string &topic)
 
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Callback: on_message";
+	FASTLIB_LOG(trace) << "Callback: on_message";
 	try {
 		std::vector<decltype(subscriptions)::mapped_type> matched_subscriptions;
 		// Get all subscriptions matching the topic
@@ -275,7 +259,7 @@ void MQTT_communicator::on_message(const mosquitto_message *msg)
 		for (auto &subscription : matched_subscriptions)
 			subscription->add_message(msg);
 	} catch (const std::exception &e) { // Catch exceptions and do nothing to not break mosquitto loop.
-		BOOST_LOG_TRIVIAL(trace) << "Exception in on_message: " << e.what();
+		FASTLIB_LOG(trace) << "Exception in on_message: " << e.what();
 	}
 
 }
@@ -287,14 +271,14 @@ void MQTT_communicator::send_message(const std::string &message)
 
 void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Sending message.";
+	FASTLIB_LOG(trace) << "Sending message.";
 	// Use default topic if empty string is passed.
 	auto &real_topic = topic == "" ? default_publish_topic : topic;
 	// Publish message to topic.
 	int ret = publish(nullptr, real_topic.c_str(), message.size(), message.c_str(), qos, false);
 	if (ret != MOSQ_ERR_SUCCESS)
 		throw std::runtime_error(mosq_err_string("Error sending message: ", ret));
-	BOOST_LOG_TRIVIAL(trace) << "Message sent.";
+	FASTLIB_LOG(trace) << "Message sent.";
 }
 
 std::string MQTT_communicator::get_message()
@@ -314,7 +298,7 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 
 std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
 {
-	BOOST_LOG_TRIVIAL(trace) << "Getting message.";
+	FASTLIB_LOG(trace) << "Getting message.";
 	try {
 		std::unique_lock<std::mutex> lock(subscriptions_mutex);
 		auto &subscription = subscriptions.at(topic);
@@ -323,7 +307,78 @@ std::string MQTT_communicator::get_message(const std::string &topic, const std::
 	} catch (const std::out_of_range &e) {
 		throw std::out_of_range("Topic not found in subscriptions.");
 	}
-	BOOST_LOG_TRIVIAL(trace) << "Message got.";
+	FASTLIB_LOG(trace) << "Message got.";
+}
+
+
+void MQTT_communicator::init_mosq_lib()
+{
+	if (ref_count++ == 0) {
+		FASTLIB_LOG(trace) << "Initialize mosquitto library.";
+		mosqpp::lib_init();
+	}
+}
+
+void MQTT_communicator::cleanup_mosq_lib()
+{
+	if (--ref_count == 0) {
+		FASTLIB_LOG(trace) << "Clean mosquitto library up.";
+		mosqpp::lib_cleanup();
+	}
+}
+
+// Connect to MQTT broker. Uses condition variable that is set in on_connect, because
+// (re-)connect returning MOSQ_ERR_SUCCESS does not guarantee an fully established connection.
+void MQTT_communicator::connect_to_broker(
+		const std::string &host,
+		int port,
+		int keepalive,
+		const timeout_duration_t &timeout)
+{
+	FASTLIB_LOG(trace) << "Connect to MQTT broker.";
+	auto start = std::chrono::high_resolution_clock::now();
+	int ret = connect(host.c_str(), port, keepalive);
+	FASTLIB_LOG(trace) << "Called connect api call.";
+	while (ret != MOSQ_ERR_SUCCESS) {
+		FASTLIB_LOG(trace) << mosq_err_string("Failed connecting to MQTT broker: ", ret);
+		if (std::chrono::high_resolution_clock::now() - start > timeout)
+			throw std::runtime_error("Timeout while trying to connect to MQTT broker.");
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		FASTLIB_LOG(trace) << "Retry connecting.";
+		ret = reconnect();
+	}
+	FASTLIB_LOG(trace) << "Waiting for on_connect callback to signal success.";
+	std::unique_lock<std::mutex> lock(connected_mutex);
+	auto time_left = timeout - (std::chrono::high_resolution_clock::now() - start);
+	// Branch between wait and wait_for because if time_left is max wait_for does not work
+	// (waits until now + max -> overflow?).
+	if (time_left != std::chrono::duration<double>::max()) {
+		if (!connected_cv.wait_for(lock, time_left, [this]{return connected;}))
+			throw std::runtime_error("Timeout while trying to connect to MQTT broker.");
+	} else {
+		connected_cv.wait(lock, [this]{return connected;});
+	}
+}
+
+void MQTT_communicator::disconnect_from_broker()
+{
+	// Disconnect from MQTT broker.
+	disconnect();
+}
+
+void MQTT_communicator::start_mosq_loop()
+{
+	FASTLIB_LOG(trace) << "Start mosquitto loop";
+	int ret;
+	if ((ret = loop_start()) != MOSQ_ERR_SUCCESS)
+		throw std::runtime_error(mosq_err_string("Error starting mosquitto loop: ", ret));
+
+}
+
+void MQTT_communicator::stop_mosq_loop()
+{
+	FASTLIB_LOG(trace) << "Stop mosquitto loop.";
+	loop_stop();
 }
 
 unsigned int MQTT_communicator::ref_count = 0;

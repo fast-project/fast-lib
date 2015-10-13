@@ -25,23 +25,21 @@ namespace fast {
 class MQTT_subscription;
 
 /**
- * \brief A specialized Communicator to provide communication using mqtt framework mosquitto.
- *
- * Initialize mosquitto before using this class (e.g. using mosqpp::lib_init() and mosqpp::lib_cleanup() in main)
+ * \brief A specialized Communicator to provide communication using the MQTT framework mosquitto.
  */
 class MQTT_communicator : 
 	public Communicator, 
 	private mosqpp::mosquittopp
 {
 public:
+	using timeout_duration_t = std::chrono::duration<double>;
+
 	/**
 	 * \brief Constructor for MQTT_communicator.
 	 *
-	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
-	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
-	 * and destructor.
-	 * Establishing a connection is retried every second until success or timeout.
+	 * Establishes a connection and starts async mosquitto loop.
+	 * On failure to connect this method retries to connect every second until success or timeout.
+	 * To disable the timeout it has to be set to "std:chrono::duration<double>::max()" (default).
 	 * \param id
 	 * \param publish_topic The topic to publish messages to by default.
 	 * \param host The host to connect to.
@@ -54,7 +52,7 @@ public:
 			  const std::string &host,
 			  int port,
 			  int keepalive,
-			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
+			  const timeout_duration_t &timeout = timeout_duration_t::max());
 	/**
 	 * \brief Constructor for MQTT_communicator.
 	 *
@@ -78,7 +76,7 @@ public:
 			  const std::string &host,
 			  int port,
 			  int keepalive,
-			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
+			  const timeout_duration_t &timeout = timeout_duration_t::max());
 	/**
 	 * \brief Destructor for MQTT_communicator.
 	 *
@@ -161,6 +159,18 @@ private:
 	 * \brief Callback for received messages.
 	 */
 	void on_message(const mosquitto_message *msg) override;
+
+	void init_mosq_lib();
+	void cleanup_mosq_lib();
+
+	void connect_to_broker(const std::string &host, 
+				int port, 
+				int keepalive, 
+				const timeout_duration_t &timeout = timeout_duration_t::max());
+	void disconnect_from_broker();
+
+	void start_mosq_loop();
+	void stop_mosq_loop();
 
 	std::string default_subscribe_topic;
 	std::string default_publish_topic;
