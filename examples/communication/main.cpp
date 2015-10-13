@@ -25,7 +25,13 @@ int main(int argc, char *argv[])
 		int port = 1883;
 		int keepalive = 60;
 
+		BOOST_LOG_TRIVIAL(info) << "Creating a MQTT_communicator for use in test cases.";
 		fast::MQTT_communicator comm(id, subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(5));
+
+		BOOST_LOG_TRIVIAL(info) << "Test of a second MQTT_communicator instance with random id.";
+		{
+			fast::MQTT_communicator comm("", subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(5));
+		}
 		
 		BOOST_LOG_TRIVIAL(info) << "Send and receive test.";
 		{

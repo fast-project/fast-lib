@@ -21,6 +21,11 @@ if(BUILD_SHARED_LIBS)
 	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
 endif()
 
+set(ENABLE_LOGGING ON CACHE BOOL "Enable logging with boost.log.")
+if(ENABLE_LOGGING)
+	add_definitions(-DFASTLIB_ENABLE_LOGGING)
+endif()
+
 # Library names
 set(FASTLIB_COMMUNICATION "fastlib_communication")
 set(FASTLIB_SERIALIZATION "fastlib_serialization")
