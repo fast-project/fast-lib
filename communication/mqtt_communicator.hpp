@@ -52,7 +52,7 @@ public:
 	 * Establishes a connection and starts async mosquitto loop.
 	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
 	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
-	 * \param id The id of this client. Must be unique, so the broker can identify this client.
+	 * \param id The id of this client. Must be unique, so the broker can identify this client. An empty string ("") can be passed for a random id.
 	 * \param publish_topic The topic to publish messages to by default.
 	 * \param host The host to connect to.
 	 * \param port The port to connect to.
@@ -73,7 +73,7 @@ public:
 	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
 	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
 	 * This overload also adds an default subscription to a topic.
-	 * \param id The id of this client. Must be unique, so the broker can identify this client.
+	 * \param id The id of this client. Must be unique, so the broker can identify this client. An empty string ("") can be passed for a random id.
 	 * \param subscribe_topic The topic to subscribe to by default.
 	 * \param publish_topic The topic to publish messages to by default.
 	 * \param host The host to connect to.

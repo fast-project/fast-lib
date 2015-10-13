@@ -123,7 +123,7 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 				     int port,
 				     int keepalive,
 				     const timeout_duration_t &timeout) :
-	mosqpp::mosquittopp(id.c_str()),
+	mosqpp::mosquittopp(id == "" ? nullptr : id.c_str()),
 	default_publish_topic(publish_topic),
 	connected(false)
 {
