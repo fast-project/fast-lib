@@ -31,6 +31,8 @@ class MQTT_subscription;
 
 /**
  * \brief A specialized Communicator to provide communication using the MQTT framework mosquitto.
+ *
+ * This class is threadsafe.
  */
 class MQTT_communicator : 
 	public Communicator, 
@@ -39,6 +41,8 @@ class MQTT_communicator :
 public:
 	/**
 	 * \brief The type of the timeout duration.
+	 *
+	 * The type must provide a max() method, which is reserved for no timeout.
 	 */
 	using timeout_duration_t = std::chrono::duration<double>;
 
@@ -66,11 +70,9 @@ public:
 	 * \brief Constructor for MQTT_communicator.
 	 *
 	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
-	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
-	 * and destructor.
-	 * Establishing a connection is retried every second until success or timeout.
-	 * This overload also adds an initial subscription to a topic.
+	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
+	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
+	 * This overload also adds an default subscription to a topic.
 	 * \param id The id of this client. Must be unique, so the broker can identify this client.
 	 * \param subscribe_topic The topic to subscribe to by default.
 	 * \param publish_topic The topic to publish messages to by default.
