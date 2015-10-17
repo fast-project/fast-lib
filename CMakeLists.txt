@@ -26,6 +26,8 @@ if(ENABLE_LOGGING)
 	add_definitions(-DFASTLIB_ENABLE_LOGGING)
 endif()
 
+set(BUILD_EXAMPLES ON CACHE BOOL "Enable build of examples.")
+
 # Library names
 set(FASTLIB_COMMUNICATION "fastlib_communication")
 set(FASTLIB_SERIALIZATION "fastlib_serialization")
@@ -98,5 +100,7 @@ include(MergeStaticLibraries)
 # Add subdirectories
 add_subdirectory(communication)
 add_subdirectory(serialization)
-enable_testing()
-add_subdirectory(examples)
+if(BUILD_EXAMPLES)
+	enable_testing()
+	add_subdirectory(examples)
+endif()
