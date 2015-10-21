@@ -42,8 +42,6 @@ struct kpis : public fast::Serializable {
 };
 
 struct init_agent : public fast::Serializable {
-	static const char *topic = "fast/agent/<hostname>/task";
-
 	kpis KPIs;
 
 	init_agent() = default;

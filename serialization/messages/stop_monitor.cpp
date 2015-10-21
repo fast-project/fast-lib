@@ -18,13 +18,13 @@ void job_description::load(const YAML::Node &node) {
 YAML::Node stop_monitoring::emit() const {
 	YAML::Node node;
 	node["task"] = "stop monitoring";
-	node["job-description"] = job_description.emit();
+	node["job-description"] = job_desc.emit();
 	return node;
 }
 
 void stop_monitoring::load(const YAML::Node &node) {
-	fast::load(job_description.job_id, node["job-description"]["job-id"]);
-	fast::load(job_description.process_id, node["job-description"]["process-id"]);
+	fast::load(job_desc.job_id, node["job-description"]["job-id"]);
+	fast::load(job_desc.process_id, node["job-description"]["process-id"]);
 }
 }
 }

@@ -28,8 +28,8 @@ struct job_description : public fast::Serializable {
 	std::string job_id;
 	unsigned int process_id;
 
-	kpis() = default;
-	kpis(const std::string &_job_id, unsigned int _process_id) : job_id(_job_id), process_id(_process_id) {}
+	job_description() = default;
+	job_description(const std::string &_job_id, unsigned int _process_id) : job_id(_job_id), process_id(_process_id) {}
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
@@ -39,9 +39,8 @@ struct stop_monitoring : public fast::Serializable {
 
 	job_description job_desc;
 
-	init_agent() = default;
-	init_agent(const std::map<std::string, std::string> &_categories, unsigned int _kpi_repeat)
-		: KPIs(_categories, _kpi_repeat){};
+	stop_monitoring() = default;
+	stop_monitoring(const std::string &_job_id, unsigned int _process_id) : job_desc(_job_id, _process_id){};
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
