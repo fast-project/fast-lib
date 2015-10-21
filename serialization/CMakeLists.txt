@@ -8,10 +8,13 @@
 
 ### Define source files.
 # Headers
-set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/serializable.hpp)
+set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/serializable.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/messages/init_agent.hpp
+   )
 
 # Sources
-set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/serializable.cpp 
+set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/serializable.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/messages/init_agent.cpp
 	${HEADERS})
 
 # Include directories
