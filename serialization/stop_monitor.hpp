@@ -10,7 +10,7 @@
 
 #include <string>
 #include <map>
-#include "../serializable.hpp"
+#include "serializable.hpp"
 
 namespace fast {
 namespace message {

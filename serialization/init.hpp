@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-#include "../serializable.hpp"
+#include "serializable.hpp"
 
 namespace fast {
 namespace message {
