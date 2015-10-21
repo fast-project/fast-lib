@@ -36,6 +36,7 @@ struct job_description : public fast::Serializable {
 };
 
 struct stop_monitoring : public fast::Serializable {
+
 	job_description job_desc;
 
 	init_agent() = default;
