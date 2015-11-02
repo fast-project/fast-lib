@@ -15,7 +15,8 @@
 #include <exception>
 
 // Inherit from fast::Serializable
-struct Data : fast::Serializable
+struct Data : 
+	public fast::Serializable
 {
 	std::string task;
 	unsigned int id;
