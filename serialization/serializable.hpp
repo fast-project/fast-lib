@@ -22,6 +22,8 @@ namespace fast
 	{
 //		friend struct convert<Serializable>;
 	public:
+		virtual ~Serializable() = default;
+
 		virtual YAML::Node emit() const = 0;
 		virtual void load(const YAML::Node &node) = 0;
 
