@@ -14,7 +14,7 @@
 namespace fast {
 
 /**
- * \brief An abstract class to provide an interface for communication.
+ * \brief An abstract class to provide an minimal interface for communication.
  *
  * This interface provides a method to send messages and to get incoming messages.
  */

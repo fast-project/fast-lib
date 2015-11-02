@@ -22,12 +22,17 @@
 
 namespace fast {
 
+/**
+ * \brief A handler for subscriptions.
+ *
+ * Used internally to handle subsriptions.
+ */
 class MQTT_subscription;
 
 /**
- * \brief A specialized Communicator to provide communication using mqtt framework mosquitto.
+ * \brief A specialized Communicator to provide communication using the MQTT framework mosquitto.
  *
- * Initialize mosquitto before using this class (e.g. using mosqpp::lib_init() and mosqpp::lib_cleanup() in main)
+ * This class is threadsafe.
  */
 class MQTT_communicator : 
 	public Communicator, 
@@ -35,42 +40,46 @@ class MQTT_communicator :
 {
 public:
 	/**
+	 * \brief The type of the timeout duration.
+	 *
+	 * The type must provide a max() method, which is reserved for no timeout.
+	 */
+	using timeout_duration_t = std::chrono::duration<double>;
+
+	/**
 	 * \brief Constructor for MQTT_communicator.
 	 *
-	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
-	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
-	 * and destructor.
-	 * Establishing a connection is retried every second until success or timeout.
-	 * \param id
+	 * Establishes a connection and starts async mosquitto loop.
+	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
+	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
+	 * \param id The id of this client. Must be unique, so the broker can identify this client. An empty string ("") can be passed for a random id.
 	 * \param publish_topic The topic to publish messages to by default.
 	 * \param host The host to connect to.
 	 * \param port The port to connect to.
 	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
-	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10).
+	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
 	 */
 	MQTT_communicator(const std::string &id,
 			  const std::string &publish_topic,
 			  const std::string &host,
 			  int port,
 			  int keepalive,
-			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
+			  const timeout_duration_t &timeout = timeout_duration_t::max());
+
 	/**
 	 * \brief Constructor for MQTT_communicator.
 	 *
 	 * Establishes a connection, starts async mosquitto loop and subscribes to topic.
-	 * The async mosquitto loop runs in a seperate thread so internal functions should be threadsafe.
-	 * There is no need to initialize mosquitto before using this class, because this is handled in the constructor
-	 * and destructor.
-	 * Establishing a connection is retried every second until success or timeout.
-	 * This overload also adds an initial subscription to a topic.
-	 * \param id
-	 * \param subscribe_topic The topic to subscribe to.
+	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
+	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
+	 * This overload also adds an default subscription to a topic.
+	 * \param id The id of this client. Must be unique, so the broker can identify this client. An empty string ("") can be passed for a random id.
+	 * \param subscribe_topic The topic to subscribe to by default.
 	 * \param publish_topic The topic to publish messages to by default.
 	 * \param host The host to connect to.
 	 * \param port The port to connect to.
 	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
-	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10).
+	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
 	 */
 	MQTT_communicator(const std::string &id,
 			  const std::string &subscribe_topic,
@@ -78,13 +87,15 @@ public:
 			  const std::string &host,
 			  int port,
 			  int keepalive,
-			  const std::chrono::duration<double> &timeout = std::chrono::duration<double>::max());
+			  const timeout_duration_t &timeout = timeout_duration_t::max());
+
 	/**
 	 * \brief Destructor for MQTT_communicator.
 	 *
-	 * Stops async mosquitto loop and disconnects.
+	 * Disconnects and stops async mosquitto loop.
 	 */
 	~MQTT_communicator();
+
 	/**
 	 * \brief Add a subscription to listen on for messages.
 	 *
@@ -94,6 +105,7 @@ public:
 	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
 	void add_subscription(const std::string &topic, int qos = 2);
+
 	/**
 	 * \brief Add a subscription with a callback to retrieve messages.
 	 *
@@ -104,18 +116,22 @@ public:
 	 * \param qos The quality of service (see mosquitto documentation for further information)
 	 */
 	void add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos = 2);
+
 	/**
 	 * \brief Remove a subscription.
 	 *
 	 * \param topic The topic the subscription was listening on.
 	 */
 	void remove_subscription(const std::string &topic);
+
 	/**
-	 * \brief Send a message to the default topic.
+	 * \brief Send a message to the default publish topic.
 	 *
+	 * The default publish topic can be set in the constructor.
 	 * \param message The message string to send on the default topic.
 	 */
 	void send_message(const std::string &message) override;
+
 	/**
 	 * \brief Send a message to a specific topic.
 	 *
@@ -124,25 +140,36 @@ public:
 	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
 	void send_message(const std::string &message, const std::string &topic, int qos = 2);
+
 	/**
-	 * \brief Get a message from a default topic.
+	 * \brief Get a message from the default subscribe topic.
+	 *
+	 * This is a blocking method, which waits until a message is received.
+	 * The default subscribe topic can be set in the constructor.
 	 */
 	std::string get_message() override;
+
 	/**
 	 * \brief Get a message from a specific topic.
 	 *
+	 * This is a blocking method, which waits until a message is received.
 	 * \param topic The topic to listen on for a message.
 	 */
 	std::string get_message(const std::string &topic);
+
 	/**
-	 * \brief Get a message from a default topic with timeout.
+	 * \brief Get a message from the default subscribe topic with timeout.
 	 *
+	 * This is a blocking method, which waits until a message is received or timeout is exceeded.
+	 * The default subscribe topic can be set in the constructor.
 	 * \param duration The duration until timeout.
 	 */
 	std::string get_message(const std::chrono::duration<double> &duration);
+
 	/**
 	 * \brief Get a message from a specific topic with timeout.
 	 *
+	 * This is a blocking method, which waits until a message is received or timeout is exceeded.
 	 * \param topic The topic to listen on for a message.
 	 * \param duration The duration until timeout.
 	 */
@@ -153,24 +180,99 @@ private:
 	 * \brief Callback for established connections.
 	 */
 	void on_connect(int rc) override;
+
 	/**
 	 * \brief Callback for disconnected connections.
 	 */
 	void on_disconnect(int rc) override;
+
 	/**
 	 * \brief Callback for received messages.
 	 */
 	void on_message(const mosquitto_message *msg) override;
 
+	/**
+	 * \brief Initializes the mosquitto library if necessary.
+	 *
+	 * Uses a reference counter, so mosquitto library is only initialized, if there is no other
+	 * MQTT_communicator instance.
+	 */
+	void init_mosq_lib();
+
+	/**
+	 * \brief Cleans the mosquitto library up if necessary.
+	 *
+	 * Uses a reference counter, so mosquitto library is only cleaned up, if this is the last
+	 * MQTT_communicator instance.
+	 */
+	void cleanup_mosq_lib();
+
+	/**
+	 * \brief Connects to the mosquitto broker.
+	 *
+	 * \param host The host to connect to.
+	 * \param port The port to connect to.
+	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
+	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
+	 */
+	void connect_to_broker(const std::string &host, 
+				int port, 
+				int keepalive, 
+				const timeout_duration_t &timeout = timeout_duration_t::max());
+
+	/**
+	 * \brief Disconnects from the mosquitto broker.
+	 */
+	void disconnect_from_broker();
+
+	/**
+	 * \brief Starts the async mosquitto loop.
+	 */
+	void start_mosq_loop();
+
+	/**
+	 * \brief Stops the async mosquitto loop.
+	 */
+	void stop_mosq_loop();
+
+	/**
+	 * \brief The topic to get messages from by default.
+	 */
 	std::string default_subscribe_topic;
+
+	/**
+	 * \brief The topic to send messages to by default.
+	 */
 	std::string default_publish_topic;
 
+	/**
+	 * \brief A map with a topic as key and the associated subscription handler as value.
+	 */
 	std::unordered_map<std::string, std::shared_ptr<MQTT_subscription>> subscriptions;
+
+	/**
+	 * \brief The mutex for safe access to the subscriptions map.
+	 */
 	std::mutex subscriptions_mutex;
 
-	std::mutex connected_mutex;
-	std::condition_variable connected_cv;
+	/**
+	 * \brief This flag states, if this MQTT_communicator is successfully connected.
+	 */
 	bool connected;
+	
+	/**
+	 * The mutex for safe access to the connected flag.
+	 */
+	std::mutex connected_mutex;
+
+	/**
+	 * The condition variable to signal an established connection (connected set to true).
+	 */
+	std::condition_variable connected_cv;
+
+	/**
+	 * \brief The reference counter used for init/cleanup of the mosquitto library.
+	 */
 	static unsigned int ref_count;
 };
 
