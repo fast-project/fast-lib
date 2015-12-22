@@ -42,13 +42,22 @@ std::string mosq_err_string(const std::string &str, int code)
 class MQTT_subscription
 {
 public:
+	MQTT_subscription(int qos);
+	virtual ~MQTT_subscription() = default;
 	virtual void add_message(const mosquitto_message *msg) = 0;
 	virtual std::string get_message(const std::chrono::duration<double> &duration) = 0;
+	const int qos;
 };
+
+MQTT_subscription::MQTT_subscription(int qos) :
+	qos(qos)
+{
+}
 
 class MQTT_subscription_get : public MQTT_subscription
 {
 public:
+	MQTT_subscription_get(int qos);
 	void add_message(const mosquitto_message *msg) override;
 	std::string get_message(const std::chrono::duration<double> &duration) override;
 private:
@@ -60,13 +69,18 @@ private:
 class MQTT_subscription_callback : public MQTT_subscription
 {
 public:
-	MQTT_subscription_callback(std::function<void(std::string)> callback);
+	MQTT_subscription_callback(int qos, std::function<void(std::string)> callback);
 	void add_message(const mosquitto_message *msg) override;
 	std::string get_message(const std::chrono::duration<double> &duration) override;
 private:
 	std::string message;
 	std::function<void(std::string)> callback;
 };
+
+MQTT_subscription_get::MQTT_subscription_get(int qos) :
+	MQTT_subscription(qos)
+{
+}
 
 void MQTT_subscription_get::add_message(const mosquitto_message *msg)
 {
@@ -100,7 +114,8 @@ std::string MQTT_subscription_get::get_message(const std::chrono::duration<doubl
 	return buf;
 }
 
-MQTT_subscription_callback::MQTT_subscription_callback(std::function<void(std::string)> callback) :
+MQTT_subscription_callback::MQTT_subscription_callback(int qos, std::function<void(std::string)> callback) :
+	MQTT_subscription(qos),
 	callback(std::move(callback))
 {
 }
@@ -117,23 +132,24 @@ std::string MQTT_subscription_callback::get_message(const std::chrono::duration<
 	throw std::runtime_error("Error in get_message: This topic is subscribed with callback.");
 }
 
+MQTT_communicator::MQTT_communicator(const std::string &id, const std::string &publish_topic) :
+	mosqpp::mosquittopp(id == "" ? nullptr : id.c_str()),
+	default_publish_topic(publish_topic),
+	connected(false)
+{
+	init_mosq_lib();
+	start_mosq_loop();
+}
+
 MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &publish_topic,
 				     const std::string &host,
 				     int port,
 				     int keepalive,
 				     const timeout_duration_t &timeout) :
-	mosqpp::mosquittopp(id == "" ? nullptr : id.c_str()),
-	default_publish_topic(publish_topic),
-	connected(false)
+	MQTT_communicator(id, publish_topic)
 {
-	FASTLIB_LOG(trace) << "Constructing MQTT_communicator.";
-
-	init_mosq_lib();
-	start_mosq_loop();
 	connect_to_broker(host, port, keepalive, timeout);
-
-	FASTLIB_LOG(trace) << "MQTT_communicator constructed.";
 }
 MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &subscribe_topic,
@@ -145,10 +161,9 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 	MQTT_communicator(id, publish_topic, host, port, keepalive, timeout)
 {
 	// Subscribe to default topic.
-	FASTLIB_LOG(trace) << "Adding default subscription.";
+	FASTLIB_LOG(trace) << "Add default subscription.";
 	default_subscribe_topic = subscribe_topic;
 	add_subscription(default_subscribe_topic);
-	FASTLIB_LOG(trace) << "Default subscription added.";
 }
 
 MQTT_communicator::~MQTT_communicator()
@@ -169,27 +184,31 @@ MQTT_communicator::~MQTT_communicator()
 void MQTT_communicator::add_subscription(const std::string &topic, int qos)
 {
 	// Save subscription in unordered_map.
-	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_get>();
+	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_get>(qos);
 	std::unique_lock<std::mutex> lock(subscriptions_mutex);
 	subscriptions.emplace(std::make_pair(topic, ptr));
 	lock.unlock();
 	// Send subscribe to MQTT broker.
-	auto ret = subscribe(nullptr, topic.c_str(), qos);
-	if (ret != MOSQ_ERR_SUCCESS)
-		throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	if (connected) {
+		auto ret = subscribe(nullptr, topic.c_str(), qos);
+		if (ret != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	}
 }
 
 void MQTT_communicator::add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos)
 {
 	// Save subscription in unordered_map.
-	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_callback>(std::move(callback));
+	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_callback>(qos, std::move(callback));
 	std::unique_lock<std::mutex> lock(subscriptions_mutex);
 	subscriptions.emplace(std::make_pair(topic, ptr));
 	lock.unlock();
 	// Send subscribe to MQTT broker.
-	auto ret = subscribe(nullptr, topic.c_str(), qos);
-	if (ret != MOSQ_ERR_SUCCESS)
-		throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	if (connected) {
+		auto ret = subscribe(nullptr, topic.c_str(), qos);
+		if (ret != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	}
 }
 
 void MQTT_communicator::remove_subscription(const std::string &topic)
@@ -200,9 +219,11 @@ void MQTT_communicator::remove_subscription(const std::string &topic)
 	subscriptions.erase(topic);
 	lock.unlock();
 	// Send unsubscribe to MQTT broker.
-	auto ret = unsubscribe(nullptr, topic.c_str());
-	if (ret != MOSQ_ERR_SUCCESS)
-		throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	if (connected) {
+		auto ret = unsubscribe(nullptr, topic.c_str());
+		if (ret != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	}
 }
 
 void MQTT_communicator::on_connect(int rc)
@@ -272,6 +293,8 @@ void MQTT_communicator::send_message(const std::string &message)
 void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos)
 {
 	FASTLIB_LOG(trace) << "Sending message.";
+	if (!connected)
+		throw std::runtime_error("No connection established.");
 	// Use default topic if empty string is passed.
 	auto &real_topic = topic == "" ? default_publish_topic : topic;
 	// Publish message to topic.
@@ -299,6 +322,8 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
 {
 	FASTLIB_LOG(trace) << "Getting message.";
+	if (!connected)
+		throw std::runtime_error("No connection established.");
 	try {
 		std::unique_lock<std::mutex> lock(subscriptions_mutex);
 		auto &subscription = subscriptions.at(topic);
@@ -336,6 +361,8 @@ void MQTT_communicator::connect_to_broker(
 		const timeout_duration_t &timeout)
 {
 	FASTLIB_LOG(trace) << "Connect to MQTT broker.";
+	if (connected)
+		throw std::runtime_error("Already connected.");
 	auto start = std::chrono::high_resolution_clock::now();
 	int ret = connect(host.c_str(), port, keepalive);
 	FASTLIB_LOG(trace) << "Called connect api call.";
@@ -358,12 +385,30 @@ void MQTT_communicator::connect_to_broker(
 	} else {
 		connected_cv.wait(lock, [this]{return connected;});
 	}
+	resubscribe();
 }
 
 void MQTT_communicator::disconnect_from_broker()
 {
 	// Disconnect from MQTT broker.
-	disconnect();
+	if (connected) {
+		disconnect();
+	}
+}
+
+void MQTT_communicator::resubscribe()
+{
+	if (!connected)
+		throw std::runtime_error("No connection established.");
+	std::lock_guard<std::mutex> lock(subscriptions_mutex);
+	for (auto &iter : subscriptions) {
+		// Send subscribe to MQTT broker.
+		auto &topic = iter.first;
+		auto &qos = iter.second->qos;
+		auto ret = subscribe(nullptr, topic.c_str(), qos);
+		if (ret != MOSQ_ERR_SUCCESS)
+			throw std::runtime_error(mosq_err_string("Error subscribing to topic \"" + topic + "\": ", ret));
+	}
 }
 
 void MQTT_communicator::start_mosq_loop()
