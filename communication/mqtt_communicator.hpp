@@ -49,6 +49,18 @@ public:
 	/**
 	 * \brief Constructor for MQTT_communicator.
 	 *
+	 * This constructor only initializes the mosquitto library and starts the mosquitto loop.
+	 * It does not establish a connection.
+	 * Use the connect_to_broker() method to connect.
+	 * \param id The id of this client. Must be unique, so the broker can identify this client. An empty string ("") can be passed for a random id.
+	 * \param publish_topic The topic to publish messages to by default.
+	 */
+	MQTT_communicator(const std::string &id,
+			  const std::string &publish_topic);
+
+	/**
+	 * \brief Constructor for MQTT_communicator.
+	 *
 	 * Establishes a connection and starts async mosquitto loop.
 	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
 	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
@@ -175,7 +187,33 @@ public:
 	 */
 	std::string get_message(const std::string &topic, 
 				const std::chrono::duration<double> &duration);
+
+	/**
+	 * \brief Connect to the mosquitto broker.
+	 *
+	 * Establishes a connection and starts async mosquitto loop.
+	 * If the connect attempt fails, it tries to reconnect every second until success or timeout.
+	 * To disable the timeout it has to be set to "timeout_duration_t::max()" (default).
+	 * If a previous connection is still active, std::runtime_error is thrown.
+	 * \param host The host to connect to.
+	 * \param port The port to connect to.
+	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
+	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
+	 */
+	void connect_to_broker(const std::string &host, 
+				int port, 
+				int keepalive, 
+				const timeout_duration_t &timeout = timeout_duration_t::max());
+
+	/**
+	 * \brief Disconnect from the mosquitto broker.
+	 *
+	 * Only disconnects if a connection was previously established, else nothing happens.
+	 */
+	void disconnect_from_broker();
+
 private:
+	void resubscribe();
 	/**
 	 * \brief Callback for established connections.
 	 */
@@ -206,24 +244,6 @@ private:
 	 * MQTT_communicator instance.
 	 */
 	void cleanup_mosq_lib();
-
-	/**
-	 * \brief Connects to the mosquitto broker.
-	 *
-	 * \param host The host to connect to.
-	 * \param port The port to connect to.
-	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
-	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
-	 */
-	void connect_to_broker(const std::string &host, 
-				int port, 
-				int keepalive, 
-				const timeout_duration_t &timeout = timeout_duration_t::max());
-
-	/**
-	 * \brief Disconnects from the mosquitto broker.
-	 */
-	void disconnect_from_broker();
 
 	/**
 	 * \brief Starts the async mosquitto loop.

@@ -32,7 +32,36 @@ int main(int argc, char *argv[])
 		{
 			fast::MQTT_communicator comm("", subscribe_topic, publish_topic, host, port, keepalive, std::chrono::seconds(5));
 		}
-		
+		BOOST_LOG_TRIVIAL(info) << "Test of defered MQTT_communicator initialization.";
+		{
+			// Expected: success
+			std::string msg;
+			fast::MQTT_communicator comm("", publish_topic);
+			BOOST_LOG_TRIVIAL(debug) << "Add subscriptions.";
+			comm.add_subscription("topic3", [&msg](std::string received_msg) {
+					BOOST_LOG_TRIVIAL(debug) << "Received in callback: " << received_msg;
+					msg = std::move(received_msg);
+			});
+			comm.add_subscription("topic4");
+			comm.connect_to_broker(host, port, keepalive, std::chrono::seconds(5));
+			BOOST_LOG_TRIVIAL(debug) << "Sending messages.";
+			comm.send_message("Hallo Welt", "topic3");
+			comm.send_message("Hallo Welt", "topic4");
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			if (msg != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg;
+				return EXIT_FAILURE;
+			}
+			std::string msg2 = comm.get_message("topic4");
+			if (msg2 != "Hallo Welt") {
+				BOOST_LOG_TRIVIAL(debug) << "Received unexpected message.";
+				BOOST_LOG_TRIVIAL(debug) << "Message contents:" << std::endl << msg2;
+				return EXIT_FAILURE;
+			}
+			BOOST_LOG_TRIVIAL(debug) << "Messages received.";
+		}
+
 		BOOST_LOG_TRIVIAL(info) << "Send and receive test.";
 		{
 			// Expected: success
