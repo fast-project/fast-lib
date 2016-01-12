@@ -6,7 +6,7 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#include "communication/mqtt_communicator.hpp"
+#include "mqtt_communicator.hpp"
 
 #include <boost/log/trivial.hpp>
 

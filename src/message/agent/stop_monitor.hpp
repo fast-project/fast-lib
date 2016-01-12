@@ -6,14 +6,16 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#pragma once
+#ifndef FAST_LIB_MESSAGE_AGENT_STOP_MONITOR_HPP
+#define FAST_LIB_MESSAGE_AGENT_STOP_MONITOR_HPP
 
-#include <string>
+#include "../../serializable.hpp"
+
 #include <map>
-#include "serializable.hpp"
 
 namespace fast {
 namespace message {
+namespace agent {
 
 /**
  * topic: fast/agent/<hostname>/task
@@ -24,26 +26,31 @@ namespace message {
  *    process-id: <process id of the vm>
  */
 
-struct job_description : public fast::Serializable {
+struct job_description : public fast::Serializable
+{
+	job_description() = default;
+	job_description(std::string job_id, unsigned int process_id);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
 	std::string job_id;
 	unsigned int process_id;
+};
 
-	job_description() = default;
-	job_description(const std::string &_job_id, unsigned int _process_id) : job_id(_job_id), process_id(_process_id) {}
+struct stop_monitoring : public fast::Serializable
+{
+	stop_monitoring() = default;
+	stop_monitoring(std::string job_id, unsigned int process_id);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
-};
-
-struct stop_monitoring : public fast::Serializable {
 
 	job_description job_desc;
-
-	stop_monitoring() = default;
-	stop_monitoring(const std::string &_job_id, unsigned int _process_id) : job_desc(_job_id, _process_id){};
-
-	YAML::Node emit() const override;
-	void load(const YAML::Node &node) override;
 };
+
 }
 }
+}
+
+#endif

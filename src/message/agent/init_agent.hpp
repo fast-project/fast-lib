@@ -6,14 +6,16 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#pragma once
+#ifndef FAST_LIB_MESSAGE_AGENT_INIT_AGENT
+#define FAST_LIB_MESSAGE_AGENT_INIT_AGENT
 
-#include <string>
+#include "../../serializable.hpp"
+
 #include <map>
-#include "serializable.hpp"
 
 namespace fast {
 namespace message {
+namespace agent {
 
 /**
  * topic: fast/agent/<hostname>/task
@@ -29,27 +31,31 @@ namespace message {
  *  repeat: <number in seconds how often the KPIs are reported>
  */
 
-struct kpis : public fast::Serializable {
+struct kpis : public fast::Serializable
+{
 	kpis() = default;
-	kpis(const std::map<std::string, std::string> &_categories, unsigned int _kpi_repeat)
-		: categories(_categories), kpi_repeat(_kpi_repeat) {}
+	kpis(std::map<std::string, std::string> categories, unsigned int kpi_repeat);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
 
 	std::map<std::string, std::string> categories;
 	unsigned int kpi_repeat;
-
-	YAML::Node emit() const override;
-	void load(const YAML::Node &node) override;
 };
 
-struct init_agent : public fast::Serializable {
-	kpis KPIs;
-
+struct init_agent : public fast::Serializable
+{
 	init_agent() = default;
-	init_agent(const std::map<std::string, std::string> &_categories, unsigned int _kpi_repeat)
-		: KPIs(_categories, _kpi_repeat){};
+	init_agent(std::map<std::string, std::string> categories, unsigned int kpi_repeat);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
+
+	kpis KPIs;
 };
+
 }
 }
+}
+
+#endif

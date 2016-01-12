@@ -29,8 +29,7 @@ endif()
 set(BUILD_EXAMPLES ON CACHE BOOL "Enable build of examples.")
 
 # Library names
-set(FASTLIB_COMMUNICATION "fastlib_communication")
-set(FASTLIB_SERIALIZATION "fastlib_serialization")
+set(FASTLIB "fastlib")
 
 # Define version number
 set(FASTLIB_VERSION_MAJOR "0")
@@ -97,9 +96,79 @@ install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/externa
 # Add support for merging static libraries
 include(MergeStaticLibraries)
 
-# Add subdirectories
-add_subdirectory(communication)
-add_subdirectory(serialization)
+### Define header, source and lib files
+# Headers
+set(HEADERS_MESSAGE_AGENT
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.hpp"
+)
+
+#set(HEADERS_MESSAGE_MIGFRA
+#)
+
+set(HEADERS_ROOT
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/communicator.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.hpp"
+)
+
+
+set(HEADERS
+	"${HEADERS_ROOT}"
+	"${HEADERS_MESSAGE_AGENT}"
+#	"${HEADERS_MESSAGE_MIGFRA}"
+)
+
+# Source
+set(SRC
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
+	"${HEADERS}"
+)
+
+# Include directories
+include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
+include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
+
+### Build and installation targets
+# Add library
+add_library(${FASTLIB} ${SRC})
+
+# Merge with dependent libraries
+add_dependencies(${FASTLIB} ${BoostRegexLibs})
+get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
+set(LIBS ${MOSQUITTO_LIBRARIES} ${YAMLCPP_LIBRARY} ${BOOST_REGEX_LIBRARY})
+if(ENABLE_LOGGING)
+	add_dependencies(${FASTLIB} ${BoostLogLibs})
+	get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
+	get_property(BOOST_CHRONO_LIBRARY TARGET ${BoostChronoLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_DATE_TIME_LIBRARY TARGET ${BoostDateTimeLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_FILESYSTEM_LIBRARY TARGET ${BoostFilesystemLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_THREAD_LIBRARY TARGET ${BoostThreadLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_SYSTEM_LIBRARY TARGET ${BoostSystemLibs} PROPERTY LOCATION) # dependency of boost.log
+	set(LIBS ${LIBS} ${BOOST_LOG_LIBRARY} ${BOOST_CHRONO_LIBRARY} ${BOOST_DATE_TIME_LIBRARY} ${BOOST_FILESYSTEM_LIBRARY} ${BOOST_THREAD_LIBRARY} ${BOOST_SYSTEM_LIBRARY})
+endif()
+MERGE_STATIC_LIBRARIES(${FASTLIB} ALL "${LIBS}")
+# As librt should always be available it is linked dynamically and therefore has to be linked in applications
+# that use fast-lib as well.
+target_link_libraries(${FASTLIB} -lrt)
+
+# Install
+install(TARGETS "${FASTLIB}"
+	LIBRARY DESTINATION "lib"
+	ARCHIVE DESTINATION "lib")
+install(FILES "${HEADERS_ROOT}"
+	DESTINATION "include/fast-lib")
+install(FILES "${HEADERS_MESSAGE_AGENT}"
+	DESTINATION "include/fast-lib/message/agent")
+#install(FILES "${HEADERS_MESSAGE_MIGFRA}"
+#	DESTINATION "include/fast-lib/message/migfra")
+
+# Testing
 if(BUILD_EXAMPLES)
 	enable_testing()
 	add_subdirectory(examples)

@@ -6,13 +6,14 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#pragma once
+#ifndef FAST_LIB_MESSAGE_INIT_HPP
+#define FAST_LIB_MESSAGE_INIT_HPP
 
-#include <string>
-#include "serializable.hpp"
+#include "../../serializable.hpp"
 
 namespace fast {
 namespace message {
+namespace agent {
 
 /**
  * * topic: fast/agent/<hostname>/status
@@ -20,15 +21,19 @@ namespace message {
  *   task: init
  *   source: <hostname>
  */
-
-struct init : public fast::Serializable {
-	std::string hostname;
-
+struct init : public fast::Serializable
+{
 	init() = default;
-	init(const std::string _hostname) : hostname(_hostname){};
+	init(std::string hostname);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
+
+	std::string hostname;
 };
+
 }
 }
+}
+
+#endif
