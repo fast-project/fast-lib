@@ -9,7 +9,7 @@
 #ifndef FAST_LIB_MESSAGE_AGENT_STOP_MONITOR_HPP
 #define FAST_LIB_MESSAGE_AGENT_STOP_MONITOR_HPP
 
-#include "../../serializable.hpp"
+#include <fast-lib/serializable.hpp>
 
 #include <map>
 

@@ -1,4 +1,4 @@
-#include "stop_monitor.hpp"
+#include <fast-lib/message/agent/stop_monitor.hpp>
 
 namespace fast {
 namespace message {

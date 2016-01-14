@@ -9,7 +9,7 @@
 #ifndef FAST_LIB_MESSAGE_AGENT_INIT_AGENT
 #define FAST_LIB_MESSAGE_AGENT_INIT_AGENT
 
-#include "../../serializable.hpp"
+#include <fast-lib/serializable.hpp>
 
 #include <map>
 

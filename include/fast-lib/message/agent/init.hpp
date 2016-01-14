@@ -9,7 +9,7 @@
 #ifndef FAST_LIB_MESSAGE_INIT_HPP
 #define FAST_LIB_MESSAGE_INIT_HPP
 
-#include "../../serializable.hpp"
+#include <fast-lib/serializable.hpp>
 
 namespace fast {
 namespace message {

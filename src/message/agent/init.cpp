@@ -1,4 +1,4 @@
-#include "init.hpp"
+#include <fast-lib/message/agent/init.hpp>
 
 namespace fast {
 namespace message {

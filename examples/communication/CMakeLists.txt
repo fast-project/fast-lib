@@ -12,7 +12,6 @@ set(FASTLIB_EXAMPLE_COMMUNICATION "fastlib_example_communication")
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 # Include directories
-include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
 
 ### Build and installation targets
