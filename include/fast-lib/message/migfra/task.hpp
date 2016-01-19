@@ -34,12 +34,13 @@ public:
 	 * \param concurrent_execution Execute Task in dedicated thread.
 	 * \param time_measurement Measure execution time and send in Result.
 	 */
-	Task(bool concurrent_execution, bool time_measurement = false);
+	Task(std::string vm_name, bool concurrent_execution, bool time_measurement = false);
 	virtual ~Task(){};
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 protected:
+	std::string vm_name;
 	bool concurrent_execution;
 	bool time_measurement;
 };
@@ -112,7 +113,6 @@ public:
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	std::string vm_name;
 	unsigned int vcpus;
 	unsigned long memory;
 	std::vector<PCI_id> pci_ids;
@@ -137,7 +137,6 @@ public:
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	std::string vm_name;
 	bool force;
 };
 
@@ -165,7 +164,6 @@ public:
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	std::string vm_name;
 	std::string dest_hostname;
 	bool live_migration;
 	bool rdma_migration;
