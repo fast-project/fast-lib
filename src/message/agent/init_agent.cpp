@@ -1,7 +1,7 @@
 #include <fast-lib/message/agent/init_agent.hpp>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 //

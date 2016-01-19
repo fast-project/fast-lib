@@ -12,7 +12,7 @@
 #include <fast-lib/serializable.hpp>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 /**
@@ -35,5 +35,7 @@ struct init : public fast::Serializable
 }
 }
 }
+
+YAML_CONVERT_IMPL(fast::msg::agent::init)
 
 #endif

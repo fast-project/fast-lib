@@ -1,7 +1,7 @@
 #include <fast-lib/message/agent/stop_monitor.hpp>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 //

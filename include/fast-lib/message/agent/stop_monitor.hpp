@@ -11,10 +11,11 @@
 
 #include <fast-lib/serializable.hpp>
 
+#include <string>
 #include <map>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 /**
@@ -52,5 +53,8 @@ struct stop_monitoring : public fast::Serializable
 }
 }
 }
+
+YAML_CONVERT_IMPL(fast::msg::agent::job_description)
+YAML_CONVERT_IMPL(fast::msg::agent::stop_monitoring)
 
 #endif

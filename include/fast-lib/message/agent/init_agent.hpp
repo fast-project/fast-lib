@@ -11,10 +11,11 @@
 
 #include <fast-lib/serializable.hpp>
 
+#include <string>
 #include <map>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 /**
@@ -57,5 +58,8 @@ struct init_agent : public fast::Serializable
 }
 }
 }
+
+YAML_CONVERT_IMPL(fast::msg::agent::kpis)
+YAML_CONVERT_IMPL(fast::msg::agent::init_agent)
 
 #endif

@@ -1,7 +1,7 @@
 #include <fast-lib/message/agent/init.hpp>
 
 namespace fast {
-namespace message {
+namespace msg {
 namespace agent {
 
 init::init(std::string hostname) :
