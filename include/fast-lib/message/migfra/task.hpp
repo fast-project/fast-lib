@@ -22,11 +22,11 @@ namespace msg {
 namespace migfra {
 
 /**
- * \brief An abstract class to provide an interface for a Task.
+ * \brief An abstract struct to provide an interface for a Task.
  */
-class Task : public fast::Serializable
+struct Task :
+	public fast::Serializable
 {
-public:
 	Task() = default;
 	/**
 	 * \brief Constructor for Task.
@@ -39,26 +39,26 @@ public:
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
-protected:
+
 	std::string vm_name;
 	bool concurrent_execution;
 	bool time_measurement;
 };
 
 /**
- * \brief A class containing tasks.
+ * \brief A struct containing tasks.
  *
  * Contains several Tasks and executes those.
  * Task_handler will call execute method to execute the task.
  */
-class Task_container :
+struct Task_container :
 	public fast::Serializable
 {
-public:
-	class no_task_exception : std::runtime_error
+	struct no_task_exception :
+		public std::runtime_error
 	{
-	public:
-		no_task_exception(const std::string &str) : std::runtime_error(str)
+		no_task_exception(const std::string &str) :
+			std::runtime_error(str)
 		{}
 	};
 
@@ -95,10 +95,9 @@ public:
 /**
  * \brief Task to start a single virtual machine.
  */
-class Start :
-	virtual public Task
+struct Start :
+	public Task
 {
-public:
 	Start() = default;
 	/**
 	 * \brief Constructor for Start task.
@@ -121,10 +120,9 @@ public:
 /**
  * \brief Task to stop a single virtual machine.
  */
-class Stop :
-	virtual public Task
+struct Stop :
+	public Task
 {
-public:
 	Stop() = default;
 	/**
 	 * \brief Constructor for Stop task.
@@ -143,10 +141,9 @@ public:
 /**
  * \brief Task to migrate a virtual machine.
  */
-class Migrate : 
-	virtual public Task
+struct Migrate : 
+	public Task
 {
-public:
 	Migrate() = default;
 	/**
 	 * \brief Constructor for Migrate task.
@@ -173,8 +170,8 @@ public:
 /**
  * \brief Task to quit migfra.
  */
-class Quit :
-	virtual public Task
+struct Quit :
+	public Task
 {
 };
 
