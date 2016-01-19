@@ -61,6 +61,10 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init_agent.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/stop_monitor.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/pci_id.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/time_measurement.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/result.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/task.hpp"
 )
 
 # Source
@@ -70,6 +74,10 @@ set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/pci_id.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/time_measurement.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/result.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/task.cpp"
 )
 
 # Add library
@@ -83,8 +91,9 @@ include(ExternalProject)
 include(add_boost)
 
 get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
-add_dependencies(${FASTLIB} "${BoostRegexLibs}")
-set(LIBS "${BOOST_REGEX_LIBRARY}")
+get_property(BOOST_TIMER_LIBRARY TARGET ${BoostTimerLibs} PROPERTY LOCATION)
+add_dependencies(${FASTLIB} "${BoostRegexLibs}" "${BoostTimerLibs}")
+set(LIBS "${BOOST_REGEX_LIBRARY}" "${BOOST_TIMER_LIBRARY}")
 if(ENABLE_LOGGING)
 	add_dependencies(${FASTLIB} "${BoostLogLibs}")
 	get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
