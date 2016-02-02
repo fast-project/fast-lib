@@ -6,8 +6,8 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#include "communication/mqtt_communicator.hpp"
-#include "serialization/serializable.hpp"
+#include <fast-lib/mqtt_communicator.hpp>
+#include <fast-lib/serializable.hpp>
 
 #include <boost/log/trivial.hpp>
 

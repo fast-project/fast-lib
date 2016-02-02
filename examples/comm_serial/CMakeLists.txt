@@ -12,7 +12,6 @@ set(FASTLIB_EXAMPLE_COMM_SERIAL "fastlib_example_comm_serial")
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 # Include directories
-include_directories(${PROJECT_SOURCE_DIR})
 include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
 include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
 
@@ -21,7 +20,7 @@ include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
 add_executable(${FASTLIB_EXAMPLE_COMM_SERIAL} ${SRC})
 
 # Link libraries
-target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} ${FASTLIB_COMMUNICATION} ${FASTLIB_SERIALIZATION})
+target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} ${FASTLIB})
 target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} -lpthread)
 
 # Link boost.log
