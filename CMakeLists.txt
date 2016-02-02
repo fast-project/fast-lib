@@ -81,7 +81,7 @@ set(SRC
 )
 
 # Add library
-add_library(${FASTLIB} "${SRC}" "${HEADERS}")
+add_library(${FASTLIB} ${SRC} ${HEADERS})
 
 # Enable support for external projects
 include(ExternalProject)
