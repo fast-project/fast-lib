@@ -29,8 +29,7 @@ endif()
 set(BUILD_EXAMPLES ON CACHE BOOL "Enable build of examples.")
 
 # Library names
-set(FASTLIB_COMMUNICATION "fastlib_communication")
-set(FASTLIB_SERIALIZATION "fastlib_serialization")
+set(FASTLIB "fastlib")
 
 # Define version number
 set(FASTLIB_VERSION_MAJOR "0")
@@ -52,8 +51,65 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
+### Define header, source and lib files
+# Headers
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(HEADERS
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/communicator.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/mqtt_communicator.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/serializable.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init_agent.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/stop_monitor.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/pci_id.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/time_measurement.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/result.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/task.hpp"
+)
+
+# Source
+set(SRC
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/pci_id.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/time_measurement.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/result.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/task.cpp"
+)
+
+# Add library
+add_library(${FASTLIB} ${SRC} ${HEADERS})
+
 # Enable support for external projects
 include(ExternalProject)
+
+########
+# Boost
+include(add_boost)
+
+get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
+get_property(BOOST_TIMER_LIBRARY TARGET ${BoostTimerLibs} PROPERTY LOCATION)
+add_dependencies(${FASTLIB} "${BoostRegexLibs}" "${BoostTimerLibs}")
+set(LIBS "${BOOST_REGEX_LIBRARY}" "${BOOST_TIMER_LIBRARY}")
+if(ENABLE_LOGGING)
+	add_dependencies(${FASTLIB} "${BoostLogLibs}")
+	get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
+	get_property(BOOST_CHRONO_LIBRARY TARGET ${BoostChronoLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_DATE_TIME_LIBRARY TARGET ${BoostDateTimeLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_FILESYSTEM_LIBRARY TARGET ${BoostFilesystemLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_THREAD_LIBRARY TARGET ${BoostThreadLibs} PROPERTY LOCATION) # dependency of boost.log
+	get_property(BOOST_SYSTEM_LIBRARY TARGET ${BoostSystemLibs} PROPERTY LOCATION) # dependency of boost.log
+	set(LIBS "${LIBS}" "${BOOST_LOG_LIBRARY}" "${BOOST_CHRONO_LIBRARY}" "${BOOST_DATE_TIME_LIBRARY}" "${BOOST_FILESYSTEM_LIBRARY}" "${BOOST_THREAD_LIBRARY}" "${BOOST_SYSTEM_LIBRARY}")
+endif()
+
+include_directories(SYSTEM ${BoostSourceDir})
+
+# Install headers
+install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
+########
 
 ########
 # mosquitto
@@ -61,22 +117,18 @@ ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
 	CMAKE_ARGS -DWITH_SRV=OFF -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic)
 
+add_dependencies(${FASTLIB} "mosquitto")
+
 # Store mosquitto variables
 ExternalProject_Get_Property(mosquitto install_dir)
 set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a) 
 set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
+set(LIBS "${LIBS}" "${MOSQUITTO_LIBRARIES}")
+
+include_directories(SYSTEM "${MOSQUITTO_INCLUDE_DIR}")
 
 # Install headers
 install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
-########
-
-########
-# Boost
-include(add_boost)
-include_directories(SYSTEM ${BoostSourceDir})
-
-# Install headers
-install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
 ########
 
 ########
@@ -85,21 +137,36 @@ ExternalProject_Add(yaml-cpp
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
 	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT=${BoostSourceDir} -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
+add_dependencies(${FASTLIB} "yaml-cpp")
+
 # Store yaml-cpp variables
 ExternalProject_Get_Property(yaml-cpp install_dir)
 set(YAMLCPP_LIBRARY "${install_dir}/lib/libyaml-cpp.a")
 set(YAMLCPP_INCLUDE_DIR "${install_dir}/include")
+set(LIBS "${LIBS}" "${YAMLCPP_LIBRARY}")
+
+include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
 
 # Install headers
 install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
-# Add support for merging static libraries
+# Merge with dependent libraries
 include(MergeStaticLibraries)
+MERGE_STATIC_LIBRARIES(${FASTLIB} ALL "${LIBS}")
 
-# Add subdirectories
-add_subdirectory(communication)
-add_subdirectory(serialization)
+# As librt should always be available it is linked dynamically and therefore has to be linked in applications
+# that use fast-lib as well.
+target_link_libraries(${FASTLIB} -lrt)
+
+# Install
+install(TARGETS "${FASTLIB}"
+	LIBRARY DESTINATION "lib"
+	ARCHIVE DESTINATION "lib")
+install(DIRECTORY "include/"
+	DESTINATION "include")
+
+# Testing
 if(BUILD_EXAMPLES)
 	enable_testing()
 	add_subdirectory(examples)
