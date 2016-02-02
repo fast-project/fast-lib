@@ -121,7 +121,7 @@ add_dependencies(${FASTLIB} "mosquitto")
 
 # Store mosquitto variables
 ExternalProject_Get_Property(mosquitto install_dir)
-set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a) 
+set(MOSQUITTO_LIBRARIES ${install_dir}/lib/libmosquittopp.a ${install_dir}/lib/libmosquitto.a)
 set(MOSQUITTO_INCLUDE_DIR "${install_dir}/include")
 set(LIBS "${LIBS}" "${MOSQUITTO_LIBRARIES}")
 
@@ -134,8 +134,8 @@ install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/exter
 ########
 # yaml-cpp
 ExternalProject_Add(yaml-cpp
-	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp-0.5.1
-	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBOOST_ROOT=${BoostSourceDir} -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
+	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp
+	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
 add_dependencies(${FASTLIB} "yaml-cpp")
 
