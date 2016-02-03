@@ -24,8 +24,8 @@ target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} ${FASTLIB})
 target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} -lpthread)
 
 # Link boost.log
-add_dependencies(${FASTLIB_EXAMPLE_COMM_SERIAL} ${BoostLogLibs})
-target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} ${EXAMPLE_LIBS})
+#add_dependencies(${FASTLIB_EXAMPLE_COMM_SERIAL} ${BoostLogLibs})
+#target_link_libraries(${FASTLIB_EXAMPLE_COMM_SERIAL} ${EXAMPLE_LIBS})
 
 # Add test
 add_test(comm_serial_tests ${FASTLIB_EXAMPLE_COMM_SERIAL})

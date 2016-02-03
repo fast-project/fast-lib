@@ -1,0 +1,25 @@
+#ifndef FAST_LOG_HPP
+#define FAST_LOG_HPP
+
+#ifdef FASTLIB_ENABLE_LOGGING
+	#include <spdlog/spdlog.h>
+	#define FASTLIB_LOG_INIT(var, name) namespace fast { namespace log {auto var = spdlog::stdout_logger_mt(name); } }
+	#define FASTLIB_LOG_SET_LEVEL(var, lvl) (fast::log::var->set_level(spdlog::level::lvl))
+	#define FASTLIB_LOG(var, lvl) (fast::log::var->lvl())
+#else
+	namespace fast {
+	namespace log {
+		class Dev_null
+		{
+		} dev_null;
+		template<typename T> Dev_null & operator<<(Dev_null &dest, T)
+		{
+			return dest;
+		}
+	}
+	}
+	#define FASTLIB_LOG_INIT(var, name)
+	#define FASTLIB_LOG(level) fast::log::dev_null
+#endif
+
+#endif
