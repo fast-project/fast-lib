@@ -17,6 +17,8 @@
 
 FASTLIB_LOG_INIT(comm_log, "MQTT_communicator")
 
+FASTLIB_LOG_SET_LEVEL_GLOBAL(comm_log, trace);
+
 namespace fast {
 
 /// Helper function to make error codes human readable.
@@ -244,9 +246,9 @@ void MQTT_communicator::on_disconnect(int rc)
 std::regex topic_to_regex(const std::string &topic)
 {
 	// Replace "+" by "\w*"
-	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"(\\w*)");
+	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"(\w*)");
 	// Replace "#" by "\w*(?:/\w*)*$"
-	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"(\\w*(?:/\\w*)*$)");
+	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"(\w*(?:/\w*)*$)");
 	return std::regex(regex_topic);
 }
 
@@ -262,6 +264,8 @@ void MQTT_communicator::on_message(const mosquitto_message *msg)
 				matched_subscriptions.push_back(subscription.second);
 		}
 		lock.unlock();
+		if (matched_subscriptions.size() == 0)
+			throw std::runtime_error("No matching subscriptions.");
 		// Add message to all matched subscriptions
 		for (auto &subscription : matched_subscriptions)
 			subscription->add_message(msg);
