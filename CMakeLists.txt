@@ -154,19 +154,25 @@ install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/externa
 
 ########
 # spdlog
-ExternalProject_Add(spdlog
-	GIT_REPOSITORY https://github.com/gabime/spdlog.git
+#ExternalProject_Add(spdlog
+#	GIT_REPOSITORY https://github.com/gabime/spdlog.git
 #	GIT_TAG 
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
+#	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+#	CONFIGURE_COMMAND ""
+#	BUILD_COMMAND ""
+#	INSTALL_COMMAND "cp -r <SOURCE_DIR>/include <INSTALL_DIR>"
+#)
 
-add_dependencies(${FASTLIB} "spdlog")
+
+#add_dependencies(${FASTLIB} "spdlog")
 
 # Store spdlog variables
-ExternalProject_Get_Property(spdlog install_dir)
+#ExternalProject_Get_Property(spdlog install_dir)
 #set(SPDLOG_LIBRARY "${install_dir}/lib/libspdlog.a")
-set(SPDLOG_INCLUDE_DIR "${install_dir}/include")
+#set(SPDLOG_INCLUDE_DIR "${install_dir}/include")
 #set(LIBS "${LIBS}" "${SPDLOG_LIBRARY}")
 
+set(SPDLOG_INCLUDE_DIR "vendor/spdlog/include")
 include_directories(SYSTEM "${SPDLOG_INCLUDE_DIR}")
 
 # Install headers
