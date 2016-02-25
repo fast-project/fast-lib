@@ -32,7 +32,9 @@
 	}
 	}
 	#define FASTLIB_LOG_INIT(var, name)
-	#define FASTLIB_LOG(level) fast::log::dev_null
+	#define FASTLIB_LOG_SET_LEVEL(var, lvl)
+	#define FASTLIB_LOG_SET_LEVEL_GLOBAL(var, lvl)
+	#define FASTLIB_LOG(var, lvl) fast::log::dev_null
 #endif
 
 #endif
