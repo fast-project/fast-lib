@@ -72,6 +72,7 @@ set(HEADERS
 set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/log.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
