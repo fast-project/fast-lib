@@ -102,31 +102,6 @@ add_library(${FASTLIB} ${SRC} ${HEADERS})
 include(ExternalProject)
 
 ########
-# Boost
-#include(add_boost)
-#
-#get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
-#get_property(BOOST_TIMER_LIBRARY TARGET ${BoostTimerLibs} PROPERTY LOCATION)
-#add_dependencies(${FASTLIB} "${BoostRegexLibs}" "${BoostTimerLibs}")
-#set(LIBS "${BOOST_REGEX_LIBRARY}" "${BOOST_TIMER_LIBRARY}")
-#if(ENABLE_LOGGING)
-#	add_dependencies(${FASTLIB} "${BoostLogLibs}")
-#	get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
-#	get_property(BOOST_CHRONO_LIBRARY TARGET ${BoostChronoLibs} PROPERTY LOCATION) # dependency of boost.log
-#	get_property(BOOST_DATE_TIME_LIBRARY TARGET ${BoostDateTimeLibs} PROPERTY LOCATION) # dependency of boost.log
-#	get_property(BOOST_FILESYSTEM_LIBRARY TARGET ${BoostFilesystemLibs} PROPERTY LOCATION) # dependency of boost.log
-#	get_property(BOOST_THREAD_LIBRARY TARGET ${BoostThreadLibs} PROPERTY LOCATION) # dependency of boost.log
-#	get_property(BOOST_SYSTEM_LIBRARY TARGET ${BoostSystemLibs} PROPERTY LOCATION) # dependency of boost.log
-#	set(LIBS "${LIBS}" "${BOOST_LOG_LIBRARY}" "${BOOST_CHRONO_LIBRARY}" "${BOOST_DATE_TIME_LIBRARY}" "${BOOST_FILESYSTEM_LIBRARY}" "${BOOST_THREAD_LIBRARY}" "${BOOST_SYSTEM_LIBRARY}")
-#endif()
-#
-#include_directories(SYSTEM ${BoostSourceDir})
-#
-## Install headers
-#install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
-########
-
-########
 # mosquitto
 ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
@@ -170,24 +145,6 @@ install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/externa
 
 ########
 # spdlog
-#ExternalProject_Add(spdlog
-#	GIT_REPOSITORY https://github.com/gabime/spdlog.git
-#	GIT_TAG 
-#	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-#	CONFIGURE_COMMAND ""
-#	BUILD_COMMAND ""
-#	INSTALL_COMMAND "cp -r <SOURCE_DIR>/include <INSTALL_DIR>"
-#)
-
-
-#add_dependencies(${FASTLIB} "spdlog")
-
-# Store spdlog variables
-#ExternalProject_Get_Property(spdlog install_dir)
-#set(SPDLOG_LIBRARY "${install_dir}/lib/libspdlog.a")
-#set(SPDLOG_INCLUDE_DIR "${install_dir}/include")
-#set(LIBS "${LIBS}" "${SPDLOG_LIBRARY}")
-
 set(SPDLOG_INCLUDE_DIR "vendor/spdlog/include")
 include_directories(SYSTEM "${SPDLOG_INCLUDE_DIR}")
 
