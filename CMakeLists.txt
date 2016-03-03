@@ -21,7 +21,7 @@ if(BUILD_SHARED_LIBS)
 	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
 endif()
 
-set(ENABLE_LOGGING ON CACHE BOOL "Enable logging with boost.log.")
+set(ENABLE_LOGGING ON CACHE BOOL "Enable logging.")
 if(ENABLE_LOGGING)
 	add_definitions(-DFASTLIB_ENABLE_LOGGING)
 endif()
@@ -36,6 +36,19 @@ set(FASTLIB_VERSION_MAJOR "0")
 set(FASTLIB_VERSION_MINOR "1")
 set(FASTLIB_VERSION_PATCH "0")
 set(FASTLIB_VERSION "${FASTLIB_VERSION_MAJOR}.${FASTLIB_VERSION_MINOR}.${FASTLIB_VERSION_PATCH}")
+
+# Check compiler version
+set(MIN_GCC_VERSION "4.9.0")
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_C_COMPILER_VERSION VERSION_LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "gcc must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "g++ must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
 
 # Set compiler flags
 include(CheckCXXCompilerFlag)
@@ -72,6 +85,7 @@ set(HEADERS
 set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/log.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
@@ -116,6 +130,7 @@ include(ExternalProject)
 # mosquitto
 ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
+	CMAKE_COMMAND CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake
 	CMAKE_ARGS -DWITH_SRV=OFF -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic)
 
 add_dependencies(${FASTLIB} "mosquitto")
@@ -136,6 +151,7 @@ install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/exter
 # yaml-cpp
 ExternalProject_Add(yaml-cpp
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp
+	CMAKE_COMMAND CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake
 	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
 add_dependencies(${FASTLIB} "yaml-cpp")
