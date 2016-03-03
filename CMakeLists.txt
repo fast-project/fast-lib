@@ -21,7 +21,7 @@ if(BUILD_SHARED_LIBS)
 	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
 endif()
 
-set(ENABLE_LOGGING ON CACHE BOOL "Enable logging with boost.log.")
+set(ENABLE_LOGGING ON CACHE BOOL "Enable logging.")
 if(ENABLE_LOGGING)
 	add_definitions(-DFASTLIB_ENABLE_LOGGING)
 endif()
@@ -36,6 +36,19 @@ set(FASTLIB_VERSION_MAJOR "0")
 set(FASTLIB_VERSION_MINOR "1")
 set(FASTLIB_VERSION_PATCH "0")
 set(FASTLIB_VERSION "${FASTLIB_VERSION_MAJOR}.${FASTLIB_VERSION_MINOR}.${FASTLIB_VERSION_PATCH}")
+
+# Check compiler version
+set(MIN_GCC_VERSION "4.9.0")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "g++ must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
+if(CMAKE_CC_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_CC_COMPILER_VERSION VERSION_LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "gcc must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
 
 # Set compiler flags
 include(CheckCXXCompilerFlag)
