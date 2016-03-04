@@ -23,8 +23,8 @@ target_link_libraries(${FASTLIB_EXAMPLE_COMMUNICATION} ${FASTLIB})
 target_link_libraries(${FASTLIB_EXAMPLE_COMMUNICATION} -lpthread)
 
 # Link boost.log
-add_dependencies(${FASTLIB_EXAMPLE_COMMUNICATION} ${BoostLogLibs})
-target_link_libraries(${FASTLIB_EXAMPLE_COMMUNICATION} ${EXAMPLE_LIBS})
+#add_dependencies(${FASTLIB_EXAMPLE_COMMUNICATION} ${BoostLogLibs})
+#target_link_libraries(${FASTLIB_EXAMPLE_COMMUNICATION} ${EXAMPLE_LIBS})
 
 # Add test
 add_test(communication_tests ${FASTLIB_EXAMPLE_COMMUNICATION})

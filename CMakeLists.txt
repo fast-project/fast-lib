@@ -21,7 +21,7 @@ if(BUILD_SHARED_LIBS)
 	message(FATAL_ERROR "BUILD_SHARED_LIBS=ON is not supported yet. Use static libs instead.")
 endif()
 
-set(ENABLE_LOGGING ON CACHE BOOL "Enable logging with boost.log.")
+set(ENABLE_LOGGING ON CACHE BOOL "Enable logging.")
 if(ENABLE_LOGGING)
 	add_definitions(-DFASTLIB_ENABLE_LOGGING)
 endif()
@@ -36,6 +36,19 @@ set(FASTLIB_VERSION_MAJOR "0")
 set(FASTLIB_VERSION_MINOR "1")
 set(FASTLIB_VERSION_PATCH "0")
 set(FASTLIB_VERSION "${FASTLIB_VERSION_MAJOR}.${FASTLIB_VERSION_MINOR}.${FASTLIB_VERSION_PATCH}")
+
+# Check compiler version
+set(MIN_GCC_VERSION "4.9.0")
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_C_COMPILER_VERSION LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "gcc must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	if(CMAKE_CXX_COMPILER_VERSION LESS "${MIN_GCC_VERSION}")
+		message(FATAL_ERROR "g++ must be of version ${MIN_GCC_VERSION} or higher.")
+	endif()
+endif()
 
 # Set compiler flags
 include(CheckCXXCompilerFlag)
@@ -58,6 +71,7 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/communicator.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/mqtt_communicator.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/serializable.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/log.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init_agent.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/stop_monitor.hpp"
@@ -71,6 +85,7 @@ set(HEADERS
 set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_communicator.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/serializable.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/log.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/init_agent.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/stop_monitor.cpp"
@@ -87,34 +102,10 @@ add_library(${FASTLIB} ${SRC} ${HEADERS})
 include(ExternalProject)
 
 ########
-# Boost
-include(add_boost)
-
-get_property(BOOST_REGEX_LIBRARY TARGET ${BoostRegexLibs} PROPERTY LOCATION)
-get_property(BOOST_TIMER_LIBRARY TARGET ${BoostTimerLibs} PROPERTY LOCATION)
-add_dependencies(${FASTLIB} "${BoostRegexLibs}" "${BoostTimerLibs}")
-set(LIBS "${BOOST_REGEX_LIBRARY}" "${BOOST_TIMER_LIBRARY}")
-if(ENABLE_LOGGING)
-	add_dependencies(${FASTLIB} "${BoostLogLibs}")
-	get_property(BOOST_LOG_LIBRARY TARGET ${BoostLogLibs} PROPERTY LOCATION)
-	get_property(BOOST_CHRONO_LIBRARY TARGET ${BoostChronoLibs} PROPERTY LOCATION) # dependency of boost.log
-	get_property(BOOST_DATE_TIME_LIBRARY TARGET ${BoostDateTimeLibs} PROPERTY LOCATION) # dependency of boost.log
-	get_property(BOOST_FILESYSTEM_LIBRARY TARGET ${BoostFilesystemLibs} PROPERTY LOCATION) # dependency of boost.log
-	get_property(BOOST_THREAD_LIBRARY TARGET ${BoostThreadLibs} PROPERTY LOCATION) # dependency of boost.log
-	get_property(BOOST_SYSTEM_LIBRARY TARGET ${BoostSystemLibs} PROPERTY LOCATION) # dependency of boost.log
-	set(LIBS "${LIBS}" "${BOOST_LOG_LIBRARY}" "${BOOST_CHRONO_LIBRARY}" "${BOOST_DATE_TIME_LIBRARY}" "${BOOST_FILESYSTEM_LIBRARY}" "${BOOST_THREAD_LIBRARY}" "${BOOST_SYSTEM_LIBRARY}")
-endif()
-
-include_directories(SYSTEM ${BoostSourceDir})
-
-# Install headers
-install(DIRECTORY "${BoostSourceDir}/boost" DESTINATION include/fast-lib/external)
-########
-
-########
 # mosquitto
 ExternalProject_Add(mosquitto
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/mosquitto-1.3.5
+	CMAKE_COMMAND CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake
 	CMAKE_ARGS -DWITH_SRV=OFF -DWITH_TLS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_C_FLAGS=-fpic -DCMAKE_CXX_FLAGS=-fpic)
 
 add_dependencies(${FASTLIB} "mosquitto")
@@ -135,6 +126,7 @@ install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/exter
 # yaml-cpp
 ExternalProject_Add(yaml-cpp
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendor/yaml-cpp
+	CMAKE_COMMAND CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} cmake
 	CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fpic -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
 
 add_dependencies(${FASTLIB} "yaml-cpp")
@@ -149,6 +141,15 @@ include_directories(SYSTEM "${YAMLCPP_INCLUDE_DIR}")
 
 # Install headers
 install(DIRECTORY "${YAMLCPP_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
+########
+
+########
+# spdlog
+set(SPDLOG_INCLUDE_DIR "vendor/spdlog/include")
+include_directories(SYSTEM "${SPDLOG_INCLUDE_DIR}")
+
+# Install headers
+install(DIRECTORY "${SPDLOG_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)
 ########
 
 # Merge with dependent libraries

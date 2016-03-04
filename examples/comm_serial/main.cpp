@@ -8,11 +8,12 @@
 
 #include <fast-lib/mqtt_communicator.hpp>
 #include <fast-lib/serializable.hpp>
-
-#include <boost/log/trivial.hpp>
+#include <fast-lib/log.hpp>
 
 #include <cstdlib>
 #include <exception>
+
+FASTLIB_LOG_INIT(comm_serial_test_log, "communication tests")
 
 // Inherit from fast::Serializable
 struct Data : 
@@ -30,6 +31,7 @@ struct Data :
 int main(int argc, char *argv[])
 {
 	(void)argc;(void)argv;
+	FASTLIB_LOG_SET_LEVEL(comm_serial_test_log, trace);
 	try {
 		std::string id = "test-id";
 		std::string subscribe_topic = "topic1";
@@ -49,11 +51,11 @@ int main(int argc, char *argv[])
 		Data d2;
 		d2.from_string(comm.get_message());
 		if (d2.task != d2.task || d1.id != d2.id || d1.vms.size() != d2.vms.size()) {
-			BOOST_LOG_TRIVIAL(info) << "Received data is corrupt.";
+			FASTLIB_LOG(comm_serial_test_log, info) << "Received data is corrupt.";
 			return EXIT_FAILURE;
 		}
 	} catch (const std::exception &e) {
-		BOOST_LOG_TRIVIAL(info) << "Exception: " << e.what();
+		FASTLIB_LOG(comm_serial_test_log, info) << "Exception: " << e.what();
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
@@ -61,7 +63,7 @@ int main(int argc, char *argv[])
 
 YAML::Node Data::emit() const
 {
-	BOOST_LOG_TRIVIAL(info) << "Emitting data to node.";
+	FASTLIB_LOG(comm_serial_test_log, info) << "Emitting data to node.";
 	YAML::Node node;
 	node["task"] = task;
 	node["data-id"] = id;
@@ -71,7 +73,7 @@ YAML::Node Data::emit() const
 
 void Data::load(const YAML::Node &node)
 {
-	BOOST_LOG_TRIVIAL(info) << "Loading data from node.";
+	FASTLIB_LOG(comm_serial_test_log, info) << "Loading data from node.";
 	fast::load(task, node["task"], "idle"); // "idle" is the default value if yaml does not contain the node "task"
 	fast::load(id, node["data-id"]); // fast::load is like calling "id = node.as<decltype(id)>()"
 	fast::load(vms, node["vms"]);
