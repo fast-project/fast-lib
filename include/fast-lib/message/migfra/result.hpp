@@ -48,13 +48,14 @@ struct Result_container : public fast::Serializable
 {
 	Result_container() = default;
 	Result_container(const std::string &yaml_str);
-	Result_container(std::string title, std::vector<Result> results);
+	Result_container(std::string title, std::vector<Result> results, std::string id = "");
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
 	std::string title;
 	std::vector<Result> results;
+	std::string id;
 };
 
 }

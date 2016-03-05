@@ -75,13 +75,14 @@ struct Task_container :
 	 * \param tasks The tasks to execute.
 	 * \param concurrent_execution Create and wait on tasks to be finished in dedicated thread.
 	 */
-	Task_container(std::vector<std::shared_ptr<Task>> tasks, bool concurrent_execution);
+	Task_container(std::vector<std::shared_ptr<Task>> tasks, bool concurrent_execution, std::string id = "");
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
 	std::vector<std::shared_ptr<Task>> tasks;
 	bool concurrent_execution;
+	std::string id;
 
 	/**
 	 * \brief Get readable type of tasks.
