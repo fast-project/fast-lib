@@ -17,9 +17,10 @@ Result_container::Result_container(const std::string &yaml_str)
 	from_string(yaml_str);
 }
 
-Result_container::Result_container(std::string title, std::vector<Result> results) :
+Result_container::Result_container(std::string title, std::vector<Result> results, std::string id) :
 	title(std::move(title)),
-	results(std::move(results))
+	results(std::move(results)),
+	id(std::move(id))
 {
 }
 
@@ -28,6 +29,8 @@ YAML::Node Result_container::emit() const
 	YAML::Node node;
 	node["result"] = title;
 	node["list"] = results;
+	if (id != "")
+		node["id"] = id;
 	return node;
 }
 
@@ -35,6 +38,7 @@ void Result_container::load(const YAML::Node &node)
 {
 	fast::load(title, node["result"]);
 	fast::load(results, node["list"]);
+	fast::load(id, node["id"], "");
 }
 
 Result::Result(std::string vm_name, std::string status, std::string details) :
