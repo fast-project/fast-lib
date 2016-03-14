@@ -10,6 +10,7 @@
 #define FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 
 #include <fast-lib/serializable.hpp>
+#include <fast-lib/optional.hpp>
 #include <fast-lib/message/migfra/pci_id.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
 
@@ -27,7 +28,7 @@ namespace migfra {
 struct Task :
 	public fast::Serializable
 {
-	Task() = default;
+	Task();
 	/**
 	 * \brief Constructor for Task.
 	 *
@@ -42,7 +43,7 @@ struct Task :
 
 	std::string vm_name;
 	bool concurrent_execution;
-	bool time_measurement;
+	Optional<bool> time_measurement;
 };
 
 /**
@@ -68,7 +69,7 @@ struct Task_container :
 	 * Constructs a Task_container without tasks.
 	 * The execute method will return immediatly on a such constructed Task_container.
 	 */
-	Task_container() = default;
+	Task_container();
 	/**
 	 * \brief Constructor for Task_container.
 	 *
@@ -82,7 +83,7 @@ struct Task_container :
 
 	std::vector<std::shared_ptr<Task>> tasks;
 	bool concurrent_execution;
-	std::string id;
+	Optional<std::string> id;
 
 	/**
 	 * \brief Get readable type of tasks.
@@ -99,7 +100,7 @@ struct Task_container :
 struct Start :
 	public Task
 {
-	Start() = default;
+	Start();
 	/**
 	 * \brief Constructor for Start task.
 	 *
@@ -113,8 +114,8 @@ struct Start :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	unsigned int vcpus;
-	unsigned long memory;
+	Optional<unsigned int> vcpus;
+	Optional<unsigned long> memory;
 	std::vector<PCI_id> pci_ids;
 };
 
@@ -124,7 +125,7 @@ struct Start :
 struct Stop :
 	public Task
 {
-	Stop() = default;
+	Stop();
 	/**
 	 * \brief Constructor for Stop task.
 	 *
@@ -136,7 +137,7 @@ struct Stop :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	bool force;
+	Optional<bool> force;
 };
 
 /**
@@ -145,7 +146,7 @@ struct Stop :
 struct Migrate : 
 	public Task
 {
-	Migrate() = default;
+	Migrate();
 	/**
 	 * \brief Constructor for Migrate task.
 	 *
@@ -163,9 +164,9 @@ struct Migrate :
 	void load(const YAML::Node &node) override;
 
 	std::string dest_hostname;
-	bool live_migration;
-	bool rdma_migration;
-	unsigned int pscom_hook_procs;
+	Optional<bool> live_migration;
+	Optional<bool> rdma_migration;
+	Optional<unsigned int> pscom_hook_procs;
 };
 
 /**

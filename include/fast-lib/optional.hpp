@@ -16,65 +16,171 @@ namespace fast
 
 // boost.optional?
 template<typename T>
-class Optional
+class Optional :
+	public fast::Serializable
 {
 public:
-	Optional(); // noexcept?
-	Optional(T rhs);
-	Optional(std::unique_ptr<T> rhs);
-	
-	Optional<T> & operator=(const T &rhs); // C++11 (move-)assignment operator?
+	using value_type = T;
 
-	T & operator(); // noexcept?
-	const T & operator() const;
+	Optional(std::string tag) noexcept;
+	Optional(std::string tag, std::unique_ptr<T> ptr) noexcept;
+	
+	Optional(std::string tag, const T &val);
+	Optional(const Optional<T> &rhs);
+	Optional(Optional<T> &&rhs) noexcept;
+	Optional<T> & operator=(const T &rhs);
+	Optional<T> & operator=(T &&rhs);
+	Optional<T> & operator=(Optional<T> rhs);
+
+	operator T&();
+	operator const T&() const;
 
 	bool is_valid() const noexcept;
 
+	T & get();
+	const T & get() const;
+
+	void set(const T &rhs);
+	void set(T &&rhs);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
 private:
-	bool valid;
+	std::string tag;
 	std::unique_ptr<T> ptr;
+	bool valid;
 };
 
-// Template scope?
-Optional::Optional() :
+template<typename T>
+Optional<T>::Optional(std::string tag) noexcept :
+	tag(std::move(tag)),
 	valid(false)
 {
 }
 
-Optional::Optional(T rhs) :
-	valid(true),
-	ptr(new T(rhs))
+template<typename T>
+Optional<T>::Optional(std::string tag, std::unique_ptr<T> ptr) noexcept :
+	tag(std::move(tag)),
+	ptr(std::move(ptr)),
+	valid(true)
 {
 }
 
-Optional::Optional(std::unique_ptr<T> rhs) :
-	valid(true),
-	rhs(std::move(rhs))
+template<typename T>
+Optional<T>::Optional(std::string tag, const T &rhs) :
+	tag(std::move(tag)),
+	ptr(new T(rhs)),
+	valid(true)
 {
 }
 
-T & operator=(const T &rhs)
+template<typename T>
+Optional<T>::Optional(const Optional<T> &rhs) :
+	tag(rhs.tag),
+	ptr(new T(*rhs.ptr)),
+	valid(rhs.valid)
 {
+}
+
+template<typename T>
+Optional<T>::Optional(Optional<T> &&rhs) noexcept :
+	tag(std::move(rhs.tag)),
+	ptr(std::move(rhs.ptr)),
+	valid(rhs.valid)
+{
+	rhs.valid = false;
+}
+
+template<typename T>
+Optional<T> & Optional<T>::operator=(const T &rhs)
+{
+	ptr.reset(new T(rhs));
 	valid = true;
-	ptr = new T(rhs);
 	return *this;
 }
 
-T & operator()
+template<typename T>
+Optional<T> & Optional<T>::operator=(T &&rhs)
 {
-	return *ptr;
+	ptr.reset(new T(std::move(rhs)));
+	valid = true;
+	return *this;
 }
 
-const T & operator() const
+template<typename T>
+Optional<T> & Optional<T>::operator=(Optional<T> rhs)
 {
-	return *ptr;
+	tag = std::move(rhs.tag);
+	valid = rhs.valid;
+	ptr = std::move(rhs.ptr);
+	return *this;
 }
 
-bool is_valid() const
+template<typename T>
+Optional<T>::operator T & ()
+{
+	return get();
+}
+
+template<typename T>
+Optional<T>::operator const T & () const
+{
+	return get();
+}
+
+template<typename T>
+bool Optional<T>::is_valid() const noexcept
 {
 	return valid;
 }
 
+template<typename T>
+T & Optional<T>::get()
+{
+	if (!valid)
+		throw std::runtime_error("Optional value not valid.");
+	return *ptr;
 }
 
+template<typename T>
+const T & Optional<T>::get() const
+{
+	if (!valid)
+		throw std::runtime_error("Optional value not valid.");
+	return *ptr;
+}
+
+template<typename T>
+void Optional<T>::set(const T &rhs)
+{
+	ptr.reset(new T(rhs));
+	valid = true;
+}
+
+template<typename T>
+void Optional<T>::set(T &&rhs)
+{
+	ptr.reset(new T(std::move(rhs)));
+	valid = true;
+}
+
+template<typename T>
+YAML::Node Optional<T>::emit() const
+{
+	YAML::Node node;
+	if (valid)
+		node[tag] = *ptr;
+	return node;
+}
+
+template<typename T>
+void Optional<T>::load(const YAML::Node &node)
+{
+	if (tag != "" && node[tag]) {
+		ptr.reset(new T(node[tag].as<T>()));
+		valid = true;
+	}
+}
+
+}
 #endif

@@ -72,6 +72,7 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/mqtt_communicator.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/serializable.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/log.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/optional.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init_agent.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/stop_monitor.hpp"
