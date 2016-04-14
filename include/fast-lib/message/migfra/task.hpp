@@ -96,6 +96,7 @@ struct Task_container :
 
 /**
  * \brief Task to start a single virtual machine.
+ * TODO: vm_name should be optional
  */
 struct Start :
 	public Task
@@ -110,6 +111,7 @@ struct Start :
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
 	Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution);
+	Start(std::string vm_name, std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
@@ -117,6 +119,7 @@ struct Start :
 	Optional<unsigned int> vcpus;
 	Optional<unsigned long> memory;
 	std::vector<PCI_id> pci_ids;
+	Optional<std::string> xml;
 };
 
 /**
