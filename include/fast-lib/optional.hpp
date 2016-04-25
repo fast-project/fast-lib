@@ -32,6 +32,9 @@ public:
 	Optional<T> & operator=(T &&rhs);
 	Optional<T> & operator=(Optional<T> rhs);
 
+	bool operator==(const Optional<T> &rhs) const;
+	bool operator==(const T &rhs) const;
+
 	operator T&();
 	operator const T&() const;
 
@@ -114,6 +117,22 @@ Optional<T> & Optional<T>::operator=(Optional<T> rhs)
 	valid = rhs.valid;
 	ptr = std::move(rhs.ptr);
 	return *this;
+}
+
+template<typename T>
+bool Optional<T>::operator==(const Optional<T> &rhs) const
+{
+	if (is_valid() != rhs.is_valid())
+		return false;
+	if (is_valid())
+		return get() == rhs.get();
+	return true;
+}
+
+template<typename T>
+bool Optional<T>::operator==(const T &rhs) const
+{
+	return is_valid() && (get() == rhs);
 }
 
 template<typename T>
