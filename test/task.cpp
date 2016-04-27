@@ -45,7 +45,6 @@ struct Task_tester :
 		auto buf = start1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		start2.from_string(buf);
-		fructose_assert(start2.vm_name.is_valid());
 		fructose_assert(start2.vcpus.is_valid());
 		fructose_assert(start2.memory.is_valid());
 		fructose_assert_eq(start2.pci_ids.size(), 1);
@@ -61,17 +60,18 @@ struct Task_tester :
 	{
 		Start start1;
 		start1.xml = "insert xml here";
+		start1.vm_name = "vm1";
 
 		Start start2;
 		auto buf = start1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		start2.from_string(buf);
-		fructose_assert(!start2.vm_name.is_valid());
 		fructose_assert(!start2.vcpus.is_valid());
 		fructose_assert(!start2.memory.is_valid());
 		fructose_assert_eq(start2.pci_ids.size(), 0);
 		fructose_assert(start2.xml.is_valid());
 		fructose_assert(start2.xml == start1.xml);
+		fructose_assert_eq(start2.vm_name, start1.vm_name);
 	}
 
 	void stop1(const std::string &test_name)
