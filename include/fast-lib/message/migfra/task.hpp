@@ -10,6 +10,7 @@
 #define FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 
 #include <fast-lib/serializable.hpp>
+#include <fast-lib/optional.hpp>
 #include <fast-lib/message/migfra/pci_id.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
 
@@ -27,7 +28,7 @@ namespace migfra {
 struct Task :
 	public fast::Serializable
 {
-	Task() = default;
+	Task();
 	/**
 	 * \brief Constructor for Task.
 	 *
@@ -41,8 +42,8 @@ struct Task :
 	void load(const YAML::Node &node) override;
 
 	std::string vm_name;
-	bool concurrent_execution;
-	bool time_measurement;
+	Optional<bool> concurrent_execution;
+	Optional<bool> time_measurement;
 };
 
 /**
@@ -68,7 +69,7 @@ struct Task_container :
 	 * Constructs a Task_container without tasks.
 	 * The execute method will return immediatly on a such constructed Task_container.
 	 */
-	Task_container() = default;
+	Task_container();
 	/**
 	 * \brief Constructor for Task_container.
 	 *
@@ -81,8 +82,8 @@ struct Task_container :
 	void load(const YAML::Node &node) override;
 
 	std::vector<std::shared_ptr<Task>> tasks;
-	bool concurrent_execution;
-	std::string id;
+	Optional<bool> concurrent_execution;
+	Optional<std::string> id;
 
 	/**
 	 * \brief Get readable type of tasks.
@@ -95,11 +96,12 @@ struct Task_container :
 
 /**
  * \brief Task to start a single virtual machine.
+ * TODO: vm_name should be optional
  */
 struct Start :
 	public Task
 {
-	Start() = default;
+	Start();
 	/**
 	 * \brief Constructor for Start task.
 	 *
@@ -109,13 +111,15 @@ struct Start :
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
 	Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution);
+	Start(std::string vm_name, std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	unsigned int vcpus;
-	unsigned long memory;
+	Optional<unsigned int> vcpus;
+	Optional<unsigned long> memory;
 	std::vector<PCI_id> pci_ids;
+	Optional<std::string> xml;
 };
 
 /**
@@ -124,7 +128,7 @@ struct Start :
 struct Stop :
 	public Task
 {
-	Stop() = default;
+	Stop();
 	/**
 	 * \brief Constructor for Stop task.
 	 *
@@ -136,7 +140,7 @@ struct Stop :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	bool force;
+	Optional<bool> force;
 };
 
 /**
@@ -145,7 +149,7 @@ struct Stop :
 struct Migrate : 
 	public Task
 {
-	Migrate() = default;
+	Migrate();
 	/**
 	 * \brief Constructor for Migrate task.
 	 *
@@ -163,9 +167,9 @@ struct Migrate :
 	void load(const YAML::Node &node) override;
 
 	std::string dest_hostname;
-	bool live_migration;
-	bool rdma_migration;
-	unsigned int pscom_hook_procs;
+	Optional<bool> live_migration;
+	Optional<bool> rdma_migration;
+	Optional<unsigned int> pscom_hook_procs;
 };
 
 /**

@@ -67,6 +67,11 @@ void PCI_id::load(const YAML::Node &node)
 	device = std::stoul(node["device"].as<std::string>(), nullptr, 0);
 }
 
+std::ostream & operator<<(std::ostream &os, const PCI_id &rhs)
+{
+	return os << rhs.str();
+}
+
 }
 }
 }
