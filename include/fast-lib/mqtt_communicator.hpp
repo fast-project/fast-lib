@@ -212,6 +212,10 @@ public:
 	 */
 	void disconnect_from_broker();
 
+	/**
+	 * \brief Check if a connection is established.
+	 */
+	bool is_connected() const;
 private:
 	void resubscribe();
 	/**

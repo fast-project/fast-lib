@@ -26,7 +26,7 @@ if(ENABLE_LOGGING)
 	add_definitions(-DFASTLIB_ENABLE_LOGGING)
 endif()
 
-set(BUILD_EXAMPLES ON CACHE BOOL "Enable build of examples.")
+set(BUILD_TESTS ON CACHE BOOL "Enable build of tests.")
 
 # Library names
 set(FASTLIB "fastlib")
@@ -72,6 +72,7 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/mqtt_communicator.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/serializable.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/log.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/optional.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/init_agent.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/stop_monitor.hpp"
@@ -168,7 +169,7 @@ install(DIRECTORY "include/"
 	DESTINATION "include")
 
 # Testing
-if(BUILD_EXAMPLES)
+if(BUILD_TESTS)
 	enable_testing()
-	add_subdirectory(examples)
+	add_subdirectory(test)
 endif()

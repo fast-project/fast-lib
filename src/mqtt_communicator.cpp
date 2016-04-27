@@ -386,6 +386,11 @@ void MQTT_communicator::disconnect_from_broker()
 	}
 }
 
+bool MQTT_communicator::is_connected() const
+{
+	return connected;
+}
+
 void MQTT_communicator::resubscribe()
 {
 	if (!connected)

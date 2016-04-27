@@ -12,6 +12,7 @@
 #include <fast-lib/serializable.hpp>
 
 #include <string>
+#include <ostream>
 
 namespace fast {
 namespace msg {
@@ -41,6 +42,8 @@ struct PCI_id :
 	vendor_t vendor;
 	device_t  device;
 };
+
+std::ostream & operator<<(std::ostream &os, const PCI_id &rhs);
 
 }
 }
