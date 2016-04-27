@@ -54,13 +54,14 @@ void Task::load(const YAML::Node &node)
 }
 
 Task_container::Task_container() :
+	concurrent_execution("concurrent-execution"),
 	id("id")
 {
 }
 
 Task_container::Task_container(std::vector<std::shared_ptr<Task>> tasks, bool concurrent_execution, std::string id) :
 	tasks(std::move(tasks)),
-	concurrent_execution(concurrent_execution),
+	concurrent_execution("concurrent-execution", concurrent_execution),
 	id("id", std::move(id))
 {
 }
@@ -93,7 +94,7 @@ YAML::Node Task_container::emit() const
 	YAML::Node node;
 	node["task"] = type();
 	node["vm-configurations"] = tasks;
-	node["concurrent-execution"] = concurrent_execution;
+	merge_node(node, concurrent_execution.emit());
 	merge_node(node, id.emit());
 	return node;
 }
@@ -140,7 +141,7 @@ void Task_container::load(const YAML::Node &node)
 	} else {
 		throw std::runtime_error("Unknown type of Task while loading.");
 	}
-	fast::load(concurrent_execution, node["concurrent-execution"], true);
+	concurrent_execution.load(node);
 	id.load(node);
 }
 

@@ -82,7 +82,7 @@ struct Task_container :
 	void load(const YAML::Node &node) override;
 
 	std::vector<std::shared_ptr<Task>> tasks;
-	bool concurrent_execution;
+	Optional<bool> concurrent_execution;
 	Optional<std::string> id;
 
 	/**
