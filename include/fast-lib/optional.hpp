@@ -80,7 +80,7 @@ Optional<T>::Optional(std::string tag, const T &rhs) :
 template<typename T>
 Optional<T>::Optional(const Optional<T> &rhs) :
 	tag(rhs.tag),
-	ptr(new T(*rhs.ptr)),
+	ptr(rhs.is_valid() ? new T(*rhs.ptr) : nullptr),
 	valid(rhs.valid)
 {
 }
