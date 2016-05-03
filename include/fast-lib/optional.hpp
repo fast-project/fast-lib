@@ -9,6 +9,9 @@
 #ifndef FAST_LIB_OPTIONAL_HPP
 #define FAST_LIB_OPTIONAL_HPP
 
+#include <fast-lib/serializable.hpp>
+#include <yaml-cpp/yaml.h>
+
 #include <memory>
 
 namespace fast
@@ -24,7 +27,7 @@ public:
 
 	Optional(std::string tag) noexcept;
 	Optional(std::string tag, std::unique_ptr<T> ptr) noexcept;
-	
+
 	Optional(std::string tag, const T &val);
 	Optional(const Optional<T> &rhs);
 	Optional(Optional<T> &&rhs) noexcept;
@@ -196,7 +199,7 @@ template<typename T>
 void Optional<T>::load(const YAML::Node &node)
 {
 	if (tag != "" && node[tag]) {
-		ptr.reset(new T(node[tag].as<T>()));
+		ptr.reset(new T(node[tag].template as<T>()));
 		valid = true;
 	}
 }
