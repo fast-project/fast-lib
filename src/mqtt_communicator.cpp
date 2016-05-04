@@ -277,7 +277,7 @@ void MQTT_communicator::on_message(const mosquitto_message *msg)
 
 void MQTT_communicator::send_message(const std::string &message)
 {
-	send_message(message, "", 2);
+	send_message(message, "", 1);
 }
 
 void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos)
