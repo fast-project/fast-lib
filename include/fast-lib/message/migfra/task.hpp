@@ -9,14 +9,14 @@
 #ifndef FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 #define FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 
-#include <fast-lib/serializable.hpp>
-#include <fast-lib/optional.hpp>
 #include <fast-lib/message/migfra/pci_id.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
+#include <fast-lib/optional.hpp>
+#include <fast-lib/serializable.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace fast {
 namespace msg {
@@ -136,7 +136,7 @@ struct Stop :
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
 	Stop(std::string vm_name, bool force, bool concurrent_execution);
-	
+
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
@@ -146,7 +146,7 @@ struct Stop :
 /**
  * \brief Task to migrate a virtual machine.
  */
-struct Migrate : 
+struct Migrate :
 	public Task
 {
 	Migrate();

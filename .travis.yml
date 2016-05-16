@@ -1,3 +1,11 @@
+language: cpp
+dist: trusty
+sudo: required
+
+compiler:
+    - clang
+    - gcc
+
 branches:
   only:
     - master
@@ -12,7 +20,6 @@ install:
     - travis_retry sudo aptitude -f install -y cmake
     - travis_retry sudo aptitude -f install -y gcc-4.9 g++-4.9
     - travis_retry sudo aptitude -f install -y mosquitto
-
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
     - sudo update-alternatives --config gcc
@@ -28,8 +35,8 @@ script:
 
 notifications:
   recipients:
-    - spickartz@eonerc.rwth-aachen.de 
-    - tohliger@eonerc.rwth-aachen.de 
+    - spickartz@eonerc.rwth-aachen.de
+    - tohliger@eonerc.rwth-aachen.de
   email:
     on_success: change
     on_failure: always

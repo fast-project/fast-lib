@@ -11,8 +11,8 @@
 
 #include <fast-lib/serializable.hpp>
 
-#include <string>
 #include <ostream>
+#include <string>
 
 namespace fast {
 namespace msg {

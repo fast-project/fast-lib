@@ -13,12 +13,12 @@
 
 #include <mosquittopp.h>
 
-#include <string>
+#include <chrono>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <condition_variable>
+#include <string>
 #include <unordered_map>
-#include <chrono>
 
 namespace fast {
 
@@ -34,8 +34,8 @@ class MQTT_subscription;
  *
  * This class is threadsafe.
  */
-class MQTT_communicator : 
-	public Communicator, 
+class MQTT_communicator :
+	public Communicator,
 	private mosqpp::mosquittopp
 {
 public:
@@ -185,7 +185,7 @@ public:
 	 * \param topic The topic to listen on for a message.
 	 * \param duration The duration until timeout.
 	 */
-	std::string get_message(const std::string &topic, 
+	std::string get_message(const std::string &topic,
 				const std::chrono::duration<double> &duration);
 
 	/**
@@ -200,9 +200,9 @@ public:
 	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
 	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
 	 */
-	void connect_to_broker(const std::string &host, 
-				int port, 
-				int keepalive, 
+	void connect_to_broker(const std::string &host,
+				int port,
+				int keepalive,
 				const timeout_duration_t &timeout = timeout_duration_t::max());
 
 	/**
@@ -283,7 +283,7 @@ private:
 	 * \brief This flag states, if this MQTT_communicator is successfully connected.
 	 */
 	bool connected;
-	
+
 	/**
 	 * The mutex for safe access to the connected flag.
 	 */

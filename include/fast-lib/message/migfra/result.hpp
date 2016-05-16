@@ -9,8 +9,8 @@
 #ifndef FAST_LIB_MESSAGE_MIGFRA_RESULT_HPP
 #define FAST_LIB_MESSAGE_MIGFRA_RESULT_HPP
 
-#include <fast-lib/serializable.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
+#include <fast-lib/serializable.hpp>
 
 #include <vector>
 
