@@ -26,14 +26,16 @@ void merge_node(YAML::Node &lhs, const YAML::Node &rhs)
 
 Task::Task() :
 	concurrent_execution("concurrent-execution"),
-	time_measurement("time-measurement")
+	time_measurement("time-measurement"),
+	driver("driver")
 {
 }
 
 Task::Task(std::string vm_name, bool concurrent_execution, bool time_measurement) :
 	vm_name(std::move(vm_name)),
 	concurrent_execution("concurrent-execution", concurrent_execution),
-	time_measurement("time-measurement", time_measurement)
+	time_measurement("time-measurement", time_measurement),
+	driver("driver")
 {
 }
 
@@ -43,6 +45,7 @@ YAML::Node Task::emit() const
 	node["vm-name"] = vm_name;
 	merge_node(node, concurrent_execution.emit());
 	merge_node(node, time_measurement.emit());
+	merge_node(node, driver.emit());
 	return node;
 }
 
@@ -51,6 +54,7 @@ void Task::load(const YAML::Node &node)
 	fast::load(vm_name, node["vm-name"]);
 	concurrent_execution.load(node);
 	time_measurement.load(node);
+	driver.load(node);
 }
 
 Task_container::Task_container() :

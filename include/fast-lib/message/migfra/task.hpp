@@ -44,6 +44,7 @@ struct Task :
 	std::string vm_name;
 	Optional<bool> concurrent_execution;
 	Optional<bool> time_measurement;
+	Optional<std::string> driver;
 };
 
 /**
