@@ -6,14 +6,14 @@
  * Version 3, 29 June 2007. For details see 'LICENSE.md' in the root directory.
  */
 
-#include <fast-lib/mqtt_communicator.hpp>
 #include <fast-lib/log.hpp>
+#include <fast-lib/mqtt_communicator.hpp>
 
-#include <stdexcept>
 #include <cstdlib>
-#include <thread>
 #include <queue>
 #include <regex>
+#include <stdexcept>
+#include <thread>
 
 FASTLIB_LOG_INIT(comm_log, "MQTT_communicator")
 
@@ -107,7 +107,7 @@ MQTT_subscription_callback::MQTT_subscription_callback(int qos, std::function<vo
 	callback(std::move(callback))
 {
 }
-		
+
 
 void MQTT_subscription_callback::add_message(const mosquitto_message *msg)
 {
@@ -254,7 +254,7 @@ std::regex topic_to_regex(const std::string &topic)
 
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
-	FASTLIB_LOG(comm_log, trace) << "Callback: on_message";
+	FASTLIB_LOG(comm_log, trace) << "Callback: on_message with topic: " << msg->topic;
 	try {
 		std::vector<decltype(subscriptions)::mapped_type> matched_subscriptions;
 		// Get all subscriptions matching the topic
@@ -291,7 +291,7 @@ void MQTT_communicator::send_message(const std::string &message, const std::stri
 	int ret = publish(nullptr, real_topic.c_str(), message.size(), message.c_str(), qos, false);
 	if (ret != MOSQ_ERR_SUCCESS)
 		throw std::runtime_error(mosq_err_string("Error sending message: ", ret));
-	FASTLIB_LOG(comm_log, trace) << "Message sent.";
+	FASTLIB_LOG(comm_log, trace) << "Message sent to topic " << real_topic << ".";
 }
 
 std::string MQTT_communicator::get_message()
@@ -311,7 +311,7 @@ std::string MQTT_communicator::get_message(const std::chrono::duration<double> &
 
 std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
 {
-	FASTLIB_LOG(comm_log, trace) << "Getting message.";
+	FASTLIB_LOG(comm_log, trace) << "Getting message for topic " << topic << ".";
 	if (!connected)
 		throw std::runtime_error("No connection established.");
 	try {
