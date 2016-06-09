@@ -97,7 +97,11 @@ YAML::Node Task_container::emit() const
 {
 	YAML::Node node;
 	node["task"] = type();
-	node["vm-configurations"] = tasks;
+	if (type() == "migrate vm") {
+		merge_node(node, tasks.front()->emit());
+	} else {
+		node["vm-configurations"] = tasks;
+	}
 	merge_node(node, concurrent_execution.emit());
 	merge_node(node, id.emit());
 	return node;
