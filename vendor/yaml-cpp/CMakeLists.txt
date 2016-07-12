@@ -149,7 +149,7 @@ endif()
 
 # GCC or Clang specialities
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR
-   "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
+   "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR
    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 	### General stuff
 	if(WIN32)
