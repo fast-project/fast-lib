@@ -125,7 +125,9 @@ set(LIBS "${LIBS}" "${MOSQUITTO_LIBRARIES}")
 add_custom_command(
 	TARGET mosquitto
 	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E create_symlink "${MOSQUITTO_INCLUDE_DIR}" "${EXTERNAL_INCLUDES}/fast-lib/external/mosquitto")
+	COMMAND ${CMAKE_COMMAND} -E create_symlink "${MOSQUITTO_INCLUDE_DIR}/mosquitto.h" "${EXTERNAL_INCLUDES}/fast-lib/external/mosquitto.h"
+	COMMAND ${CMAKE_COMMAND} -E create_symlink "${MOSQUITTO_INCLUDE_DIR}/mosquittopp.h" "${EXTERNAL_INCLUDES}/fast-lib/external/mosquittopp.h"
+	COMMAND ${CMAKE_COMMAND} -E create_symlink "${MOSQUITTO_INCLUDE_DIR}/mosquitto_plugin.h" "${EXTERNAL_INCLUDES}/fast-lib/external/mosquitto_plugin.h")
 
 # Install headers
 install(DIRECTORY "${MOSQUITTO_INCLUDE_DIR}/" DESTINATION include/fast-lib/external)

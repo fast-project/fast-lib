@@ -161,6 +161,7 @@ struct Task_tester :
 
 	void task_cont_migrate(const std::string &test_name)
 	{
+		(void) test_name;
 		Task_container tc1;
 		tc1.id = "42";
 		auto mig = std::make_shared<Migrate>();
