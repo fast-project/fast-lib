@@ -9,6 +9,7 @@ struct Task_tester :
 {
 	void task1(const std::string &test_name)
 	{
+		(void) test_name;
 		Task task1;
 		task1.concurrent_execution = true;
 		task1.time_measurement = false;
@@ -24,6 +25,7 @@ struct Task_tester :
 	}
 	void task2(const std::string &test_name)
 	{
+		(void) test_name;
 		Task task1;
 
 		Task task2;
@@ -35,6 +37,7 @@ struct Task_tester :
 	}
 	void start1(const std::string &test_name)
 	{
+		(void) test_name;
 		Start start1;
 		start1.vm_name = "vm1";
 		start1.vcpus = 8;
@@ -53,11 +56,11 @@ struct Task_tester :
 		fructose_assert(start2.vcpus == start1.vcpus);
 		fructose_assert(start2.memory == start1.memory);
 		fructose_assert_eq(start2.pci_ids[0], start1.pci_ids[0]);
-		
 	}
 
 	void start2(const std::string &test_name)
 	{
+		(void) test_name;
 		Start start1;
 		start1.xml = "insert xml here";
 		start1.vm_name = "vm1";
@@ -76,6 +79,7 @@ struct Task_tester :
 
 	void stop1(const std::string &test_name)
 	{
+		(void) test_name;
 		Stop stop1;
 		stop1.vm_name = "vm1";
 		stop1.force = false;
@@ -91,6 +95,7 @@ struct Task_tester :
 
 	void stop2(const std::string &test_name)
 	{
+		(void) test_name;
 		Stop stop1;
 		stop1.vm_name = "vm1";
 
@@ -104,6 +109,7 @@ struct Task_tester :
 
 	void migrate(const std::string &test_name)
 	{
+		(void) test_name;
 		Migrate mig1;
 		mig1.vm_name = "vm1";
 		mig1.dest_hostname = "server-B";
@@ -127,11 +133,13 @@ struct Task_tester :
 
 	void quit(const std::string &test_name)
 	{
+		(void) test_name;
 		std::cout << "Test not implemented." << std::endl;
 	}
 
 	void task_cont1(const std::string &test_name)
 	{
+		(void) test_name;
 		Task_container tc1;
 		tc1.id = "42";
 		auto first_start = std::make_shared<Start>();

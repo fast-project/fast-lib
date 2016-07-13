@@ -7,6 +7,7 @@
  */
 
 #include <fast-lib/message/migfra/task.hpp>
+
 #include <iostream>
 
 namespace fast {

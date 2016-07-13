@@ -15,7 +15,7 @@ namespace fast {
 }
 
 #ifdef FASTLIB_ENABLE_LOGGING
-	#include <spdlog/spdlog.h>
+	#include <fast-lib/external/spdlog/spdlog.h>
 
 	#define FASTLIB_LOG_INIT(var, name) namespace fast { namespace log {auto var = spdlog::stdout_logger_mt(name); } }
 

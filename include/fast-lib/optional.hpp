@@ -10,7 +10,7 @@
 #define FAST_LIB_OPTIONAL_HPP
 
 #include <fast-lib/serializable.hpp>
-#include <yaml-cpp/yaml.h>
+#include <fast-lib/external/yaml-cpp/yaml.h>
 
 #include <memory>
 
