@@ -171,6 +171,7 @@ struct Migrate :
 	Optional<bool> live_migration;
 	Optional<bool> rdma_migration;
 	Optional<unsigned int> pscom_hook_procs;
+	Optional<std::string> transport;
 };
 
 /**
