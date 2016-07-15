@@ -11,7 +11,7 @@
 
 #include <fast-lib/communicator.hpp>
 
-#include <fast-lib/external/mosquitto/mosquittopp.h>
+#include <fast-lib/external/mosquittopp.h>
 
 #include <chrono>
 #include <condition_variable>
