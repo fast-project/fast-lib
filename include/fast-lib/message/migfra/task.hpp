@@ -163,14 +163,14 @@ struct Migrate :
 	 * \param pscom_hook_procs Number of processes to suspend during migration.
 	 * \param time_measurement Measure execution time and send in Result.
 	 */
-	Migrate(std::string vm_name, std::string dest_hostname, bool live_migration, bool rdma_migration, bool concurrent_execution, unsigned int pscom_hook_procs, bool time_measurement);
+	Migrate(std::string vm_name, std::string dest_hostname, std::string migration_type, bool rdma_migration, bool concurrent_execution, unsigned int pscom_hook_procs, bool time_measurement);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
 	std::string vm_name;
 	std::string dest_hostname;
-	Optional<bool> live_migration;
+	Optional<std::string> migration_type;
 	Optional<bool> rdma_migration;
 	Optional<unsigned int> pscom_hook_procs;
 	Optional<std::string> transport;
