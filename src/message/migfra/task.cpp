@@ -108,23 +108,28 @@ YAML::Node Task_container::emit() const
 	return node;
 }
 
-template<class T> std::vector<std::shared_ptr<Task>> load_tasks(const YAML::Node &node)
+std::vector<std::shared_ptr<Task>> load_start_task(const YAML::Node &node)
 {
-	std::vector<std::shared_ptr<T>> tasks;
+	std::vector<std::shared_ptr<Start>> tasks;
 	fast::load(tasks, node["vm-configurations"]);
 	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
 }
 
-// Specialization for Migrate due to different yaml structure (no "vm-configurations")
-template<> std::vector<std::shared_ptr<Task>> load_tasks<Migrate>(const YAML::Node &node)
+std::vector<std::shared_ptr<Task>> load_stop_task(const YAML::Node &node)
+{
+	std::vector<std::shared_ptr<Stop>> tasks;
+	fast::load(tasks, node["list"]);
+	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
+}
+
+std::vector<std::shared_ptr<Task>> load_migrate_task(const YAML::Node &node)
 {
 	std::shared_ptr<Migrate> migrate_task;
 	fast::load(migrate_task, node);
 	return std::vector<std::shared_ptr<Task>>(1, migrate_task);
 }
 
-// Specialization for Quit due to different yaml structure (no "vm-configurations")
-template<> std::vector<std::shared_ptr<Task>> load_tasks<Quit>(const YAML::Node &node)
+std::vector<std::shared_ptr<Task>> load_quit_task(const YAML::Node &node)
 {
 	std::shared_ptr<Quit> quit_task;
 	fast::load(quit_task, node);
@@ -140,13 +145,13 @@ void Task_container::load(const YAML::Node &node)
 		throw Task_container::no_task_exception("Cannot find key \"task\" to load Task from YAML.");
 	} 
 	if (type == "start vm") {
-		tasks = load_tasks<Start>(node);
+		tasks = load_start_task(node);
 	} else if (type == "stop vm") {
-		tasks = load_tasks<Stop>(node);
+		tasks = load_stop_task(node);
 	} else if (type == "migrate vm") {
-		tasks = load_tasks<Migrate>(node);
+		tasks = load_migrate_task(node);
 	} else if (type == "quit") {
-		tasks = load_tasks<Quit>(node);
+		tasks = load_quit_task(node);
 	} else {
 		throw std::runtime_error("Unknown type of Task while loading.");
 	}
