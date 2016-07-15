@@ -103,7 +103,6 @@ add_library(${FASTLIB} ${SRC} ${HEADERS})
 include(ExternalProject)
 set(EXTERNAL_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/external_includes)
 file(MAKE_DIRECTORY ${EXTERNAL_INCLUDES}/fast-lib/external)
-include_directories(SYSTEM ${EXTERNAL_INCLUDES})
 include_directories(SYSTEM ${EXTERNAL_INCLUDES}/fast-lib/external)
 
 ########

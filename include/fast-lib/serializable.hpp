@@ -9,7 +9,7 @@
 #ifndef FAST_LIB_SERIALIZABLE_HPP
 #define FAST_LIB_SERIALIZABLE_HPP
 
-#include <fast-lib/external/yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 
 #include <stdexcept>
 #include <string>
