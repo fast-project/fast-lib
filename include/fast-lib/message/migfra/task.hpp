@@ -35,13 +35,12 @@ struct Task :
 	 * \param concurrent_execution Execute Task in dedicated thread.
 	 * \param time_measurement Measure execution time and send in Result.
 	 */
-	Task(std::string vm_name, bool concurrent_execution, bool time_measurement = false);
+	Task(bool concurrent_execution, bool time_measurement = false);
 	virtual ~Task(){};
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	std::string vm_name;
 	Optional<bool> concurrent_execution;
 	Optional<bool> time_measurement;
 	Optional<std::string> driver;
@@ -112,11 +111,12 @@ struct Start :
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
 	Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution);
-	Start(std::string vm_name, std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution);
+	Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
+	Optional<std::string> vm_name;
 	Optional<unsigned int> vcpus;
 	Optional<unsigned long> memory;
 	std::vector<PCI_id> pci_ids;
@@ -141,6 +141,7 @@ struct Stop :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
+	std::string vm_name;
 	Optional<bool> force;
 };
 
@@ -167,6 +168,7 @@ struct Migrate :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
+	std::string vm_name;
 	std::string dest_hostname;
 	Optional<bool> live_migration;
 	Optional<bool> rdma_migration;

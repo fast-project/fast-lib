@@ -32,8 +32,7 @@ Task::Task() :
 {
 }
 
-Task::Task(std::string vm_name, bool concurrent_execution, bool time_measurement) :
-	vm_name(std::move(vm_name)),
+Task::Task(bool concurrent_execution, bool time_measurement) :
 	concurrent_execution("concurrent-execution", concurrent_execution),
 	time_measurement("time-measurement", time_measurement),
 	driver("driver")
@@ -43,7 +42,6 @@ Task::Task(std::string vm_name, bool concurrent_execution, bool time_measurement
 YAML::Node Task::emit() const
 {
 	YAML::Node node;
-	node["vm-name"] = vm_name;
 	merge_node(node, concurrent_execution.emit());
 	merge_node(node, time_measurement.emit());
 	merge_node(node, driver.emit());
@@ -52,7 +50,6 @@ YAML::Node Task::emit() const
 
 void Task::load(const YAML::Node &node)
 {
-	fast::load(vm_name, node["vm-name"]);
 	concurrent_execution.load(node);
 	time_measurement.load(node);
 	driver.load(node);
@@ -160,6 +157,7 @@ void Task_container::load(const YAML::Node &node)
 }
 
 Start::Start() :
+	vm_name("vm-name"),
 	vcpus("vcpus"),
 	memory("memory"),
 	xml("xml")
@@ -167,7 +165,8 @@ Start::Start() :
 }
 
 Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
-	Task::Task(std::move(vm_name), concurrent_execution),
+	Task::Task(concurrent_execution),
+	vm_name("vm-name", std::move(vm_name)),
 	vcpus("vcpus", vcpus),
 	memory("memory", memory),
 	pci_ids(std::move(pci_ids)),
@@ -175,9 +174,9 @@ Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std:
 {
 }
 
-/// TODO: Get vm_name from xml.
-Start::Start(std::string vm_name, std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
-	Task::Task(std::move(vm_name), concurrent_execution),
+Start::Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
+	Task::Task(concurrent_execution),
+	vm_name("vm-name"),
 	vcpus("vcpus"),
 	memory("memory"),
 	pci_ids(std::move(pci_ids)),
@@ -188,6 +187,7 @@ Start::Start(std::string vm_name, std::string xml, std::vector<PCI_id> pci_ids, 
 YAML::Node Start::emit() const
 {
 	YAML::Node node = Task::emit();
+	merge_node(node, vm_name.emit());
 	merge_node(node, vcpus.emit());
 	merge_node(node, memory.emit());
 	merge_node(node, xml.emit());
@@ -199,6 +199,7 @@ YAML::Node Start::emit() const
 void Start::load(const YAML::Node &node)
 {
 	Task::load(node);
+	vm_name.load(node);
 	vcpus.load(node);
 	memory.load(node);
 	fast::load(pci_ids, node["pci-ids"], std::vector<PCI_id>());
@@ -211,7 +212,8 @@ Stop::Stop() :
 }
 
 Stop::Stop(std::string vm_name, bool force, bool concurrent_execution) :
-	Task::Task(std::move(vm_name), concurrent_execution),
+	Task::Task(concurrent_execution),
+	vm_name(std::move(vm_name)),
 	force("force", force)
 {
 }
@@ -219,6 +221,7 @@ Stop::Stop(std::string vm_name, bool force, bool concurrent_execution) :
 YAML::Node Stop::emit() const
 {
 	YAML::Node node = Task::emit();
+	node["vm-name"] = vm_name;
 	merge_node(node, force.emit());
 	return node;
 }
@@ -226,6 +229,7 @@ YAML::Node Stop::emit() const
 void Stop::load(const YAML::Node &node)
 {
 	Task::load(node);
+	fast::load(vm_name, node["vm-name"]);
 	force.load(node);
 }
 
@@ -238,7 +242,8 @@ Migrate::Migrate() :
 }
 
 Migrate::Migrate(std::string vm_name, std::string dest_hostname, bool live_migration, bool rdma_migration, bool concurrent_execution, unsigned int pscom_hook_procs, bool time_measurement) :
-	Task::Task(std::move(vm_name), concurrent_execution, time_measurement),
+	Task::Task(concurrent_execution, time_measurement),
+	vm_name(std::move(vm_name)),
 	dest_hostname(std::move(dest_hostname)),
 	live_migration("live-migration", live_migration),
 	rdma_migration("rdma-migration", rdma_migration),
@@ -250,6 +255,7 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, bool live_migra
 YAML::Node Migrate::emit() const
 {
 	YAML::Node node = Task::emit();
+	node["vm-name"] = vm_name;
 	node["destination"] = dest_hostname;
 	YAML::Node params = node["parameter"];
 	merge_node(params, live_migration.emit());
@@ -262,6 +268,7 @@ YAML::Node Migrate::emit() const
 void Migrate::load(const YAML::Node &node)
 {
 	Task::load(node);
+	fast::load(vm_name, node["vm-name"]);
 	fast::load(dest_hostname, node["destination"]);
 	if (node["parameter"]) {
 		live_migration.load(node["parameter"]);
