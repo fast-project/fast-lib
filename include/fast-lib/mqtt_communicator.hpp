@@ -9,7 +9,7 @@
 #ifndef FAST_LIB_MQTT_COMMUNICATOR_HPP
 #define FAST_LIB_MQTT_COMMUNICATOR_HPP
 
-#include "communicator.hpp"
+#include <fast-lib/communicator.hpp>
 
 #include <mosquittopp.h>
 
@@ -91,6 +91,7 @@ public:
 	 * \param host The host to connect to.
 	 * \param port The port to connect to.
 	 * \param keepalive The number of seconds the broker sends periodically ping messages to test if client is still alive.
+	 * \param qos The quality of service (0, 1, or 2). See mosquitto documentation for further information.
 	 * \param timeout The timeout of establishing a connection to the MQTT broker e.g. std::chrono::seconds(10). timeout_duration_t::max() is reserved for no timeout.
 	 */
 	MQTT_communicator(const std::string &id,
@@ -99,6 +100,7 @@ public:
 			  const std::string &host,
 			  int port,
 			  int keepalive,
+			  int qos = 2,
 			  const timeout_duration_t &timeout = timeout_duration_t::max());
 
 	/**

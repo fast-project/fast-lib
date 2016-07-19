@@ -145,13 +145,14 @@ MQTT_communicator::MQTT_communicator(const std::string &id,
 				     const std::string &host,
 				     int port,
 				     int keepalive,
+				     int qos,
 				     const timeout_duration_t &timeout) :
 	MQTT_communicator(id, publish_topic, host, port, keepalive, timeout)
 {
 	// Subscribe to default topic.
 	FASTLIB_LOG(comm_log, trace) << "Add default subscription.";
 	default_subscribe_topic = subscribe_topic;
-	add_subscription(default_subscribe_topic);
+	add_subscription(default_subscribe_topic, qos);
 }
 
 MQTT_communicator::~MQTT_communicator()
