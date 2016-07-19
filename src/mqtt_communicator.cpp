@@ -216,6 +216,7 @@ void MQTT_communicator::remove_subscription(const std::string &topic)
 
 void MQTT_communicator::on_connect(int rc)
 {
+	(void) rc;
 	FASTLIB_LOG(comm_log, trace) << "Callback: on_connect(" << std::to_string(rc) << ")";
 	if (rc == 0) {
 		FASTLIB_LOG(comm_log, trace) << "Setting connected flag and notify constructor.";
@@ -231,6 +232,7 @@ void MQTT_communicator::on_connect(int rc)
 
 void MQTT_communicator::on_disconnect(int rc)
 {
+	(void) rc;
 	FASTLIB_LOG(comm_log, trace) << "Callback: on_disconnect(" << std::to_string(rc) << ")";
 	if (rc == 0) {
 		FASTLIB_LOG(comm_log, trace) << "Disconnected.";
