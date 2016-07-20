@@ -9,6 +9,7 @@ struct Task_tester :
 {
 	void task1(const std::string &test_name)
 	{
+		(void) test_name;
 		Task task1;
 		task1.concurrent_execution = true;
 		task1.time_measurement = false;
@@ -24,6 +25,7 @@ struct Task_tester :
 	}
 	void task2(const std::string &test_name)
 	{
+		(void) test_name;
 		Task task1;
 
 		Task task2;
@@ -35,6 +37,7 @@ struct Task_tester :
 	}
 	void start1(const std::string &test_name)
 	{
+		(void) test_name;
 		Start start1;
 		start1.vm_name = "vm1";
 		start1.vcpus = 8;
@@ -45,6 +48,7 @@ struct Task_tester :
 		auto buf = start1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		start2.from_string(buf);
+		fructose_assert(start2.vm_name.is_valid());
 		fructose_assert(start2.vcpus.is_valid());
 		fructose_assert(start2.memory.is_valid());
 		fructose_assert_eq(start2.pci_ids.size(), 1);
@@ -53,29 +57,29 @@ struct Task_tester :
 		fructose_assert(start2.vcpus == start1.vcpus);
 		fructose_assert(start2.memory == start1.memory);
 		fructose_assert_eq(start2.pci_ids[0], start1.pci_ids[0]);
-		
 	}
 
 	void start2(const std::string &test_name)
 	{
+		(void) test_name;
 		Start start1;
 		start1.xml = "insert xml here";
-		start1.vm_name = "vm1";
 
 		Start start2;
 		auto buf = start1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		start2.from_string(buf);
+		fructose_assert(!start2.vm_name.is_valid());
 		fructose_assert(!start2.vcpus.is_valid());
 		fructose_assert(!start2.memory.is_valid());
 		fructose_assert_eq(start2.pci_ids.size(), 0);
 		fructose_assert(start2.xml.is_valid());
 		fructose_assert(start2.xml == start1.xml);
-		fructose_assert_eq(start2.vm_name, start1.vm_name);
 	}
 
 	void stop1(const std::string &test_name)
 	{
+		(void) test_name;
 		Stop stop1;
 		stop1.vm_name = "vm1";
 		stop1.force = false;
@@ -91,6 +95,7 @@ struct Task_tester :
 
 	void stop2(const std::string &test_name)
 	{
+		(void) test_name;
 		Stop stop1;
 		stop1.vm_name = "vm1";
 
@@ -104,10 +109,11 @@ struct Task_tester :
 
 	void migrate(const std::string &test_name)
 	{
+		(void) test_name;
 		Migrate mig1;
 		mig1.vm_name = "vm1";
 		mig1.dest_hostname = "server-B";
-		mig1.live_migration = false;
+		mig1.migration_type = "warm";
 		mig1.rdma_migration = true;
 		mig1.pscom_hook_procs = 1;
 
@@ -115,23 +121,25 @@ struct Task_tester :
 		auto buf = mig1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		mig2.from_string(buf);
-		fructose_assert(mig2.live_migration.is_valid());
+		fructose_assert(mig2.migration_type.is_valid());
 		fructose_assert(mig2.rdma_migration.is_valid());
 		fructose_assert(mig2.pscom_hook_procs.is_valid());
 		fructose_assert_eq(mig2.vm_name, mig1.vm_name);
 		fructose_assert_eq(mig2.dest_hostname, mig1.dest_hostname);
-		fructose_assert(mig2.live_migration == mig1.live_migration);
+		fructose_assert(mig2.migration_type == mig1.migration_type);
 		fructose_assert(mig2.rdma_migration == mig1.rdma_migration);
 		fructose_assert(mig2.pscom_hook_procs == mig1.pscom_hook_procs);
 	}
 
 	void quit(const std::string &test_name)
 	{
+		(void) test_name;
 		std::cout << "Test not implemented." << std::endl;
 	}
 
 	void task_cont_start(const std::string &test_name)
 	{
+		(void) test_name;
 		Task_container tc1;
 		tc1.id = "42";
 		auto first_start = std::make_shared<Start>();
@@ -153,13 +161,14 @@ struct Task_tester :
 
 	void task_cont_migrate(const std::string &test_name)
 	{
+		(void) test_name;
 		Task_container tc1;
 		tc1.id = "42";
 		auto mig = std::make_shared<Migrate>();
 		mig->vm_name = "vm1";
 		mig->dest_hostname = "desthost";
 		mig->time_measurement = true;
-		mig->live_migration = true;
+		mig->migration_type = "live";
 		tc1.tasks.push_back(mig);
 
 		Task_container tc2;

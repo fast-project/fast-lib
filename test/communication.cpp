@@ -30,6 +30,7 @@ struct Communication_tester :
 
 	void connect(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(!comm.is_connected());
 		fructose_assert_no_exception(
 			comm.connect_to_broker(host, port, keepalive, std::chrono::seconds(5))
@@ -39,6 +40,7 @@ struct Communication_tester :
 
 	void second_communicator(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(comm.is_connected());
 		std::unique_ptr<fast::MQTT_communicator> comm_ptr;
 		fructose_assert_no_exception(
@@ -49,6 +51,7 @@ struct Communication_tester :
 
 	void subscribe(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(comm.is_connected());
 		fructose_assert_no_exception(
 			comm.add_subscription(topic1)
@@ -57,6 +60,7 @@ struct Communication_tester :
 
 	void send_receive(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(comm.is_connected());
 		const std::string original_msg("Hallo Welt");
 		std::string msg;
@@ -71,6 +75,7 @@ struct Communication_tester :
 
 	void unsubscribe(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(comm.is_connected());
 		fructose_assert_no_exception(
 			comm.remove_subscription(topic1)
@@ -79,6 +84,7 @@ struct Communication_tester :
 
 	void disconnect(const std::string &test_name)
 	{
+		(void) test_name;
 		fructose_assert(comm.is_connected());
 		fructose_assert_no_exception(
 			comm.disconnect_from_broker();
