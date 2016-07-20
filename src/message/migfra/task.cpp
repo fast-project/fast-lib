@@ -234,7 +234,7 @@ void Stop::load(const YAML::Node &node)
 }
 
 Migrate::Migrate() :
-	migration_type("migration_type"),
+	migration_type("migration-type"),
 	rdma_migration("rdma-migration"),
 	pscom_hook_procs("pscom-hook-procs"),
 	transport("transport")
