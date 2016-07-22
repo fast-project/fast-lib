@@ -118,7 +118,7 @@ public:
 	 * \param topic The topic to listen on.
 	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
-	void add_subscription(const std::string &topic, int qos = 2);
+	void add_subscription(const std::string &topic, int qos = 2) const;
 
 	/**
 	 * \brief Add a subscription with a callback to retrieve messages.
@@ -129,14 +129,14 @@ public:
 	 * \param callback The function to call when a new message arrives on topic.
 	 * \param qos The quality of service (see mosquitto documentation for further information)
 	 */
-	void add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos = 2);
+	void add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos = 2) const;
 
 	/**
 	 * \brief Remove a subscription.
 	 *
 	 * \param topic The topic the subscription was listening on.
 	 */
-	void remove_subscription(const std::string &topic);
+	void remove_subscription(const std::string &topic) const;
 
 	/**
 	 * \brief Send a message to the default publish topic.
@@ -144,7 +144,7 @@ public:
 	 * The default publish topic can be set in the constructor.
 	 * \param message The message string to send on the default topic.
 	 */
-	void send_message(const std::string &message) override;
+	void send_message(const std::string &message) const override;
 
 	/**
 	 * \brief Send a message to a specific topic.
@@ -153,7 +153,7 @@ public:
 	 * \param topic The topic to send the message on.
 	 * \param qos The quality of service (0|1|2 - see mosquitto documentation for further information)
 	 */
-	void send_message(const std::string &message, const std::string &topic, int qos = 2);
+	void send_message(const std::string &message, const std::string &topic, int qos = 2) const;
 
 	/**
 	 * \brief Get a message from the default subscribe topic.
@@ -161,7 +161,7 @@ public:
 	 * This is a blocking method, which waits until a message is received.
 	 * The default subscribe topic can be set in the constructor.
 	 */
-	std::string get_message() override;
+	std::string get_message() const override;
 
 	/**
 	 * \brief Get a message from a specific topic.
@@ -169,7 +169,7 @@ public:
 	 * This is a blocking method, which waits until a message is received.
 	 * \param topic The topic to listen on for a message.
 	 */
-	std::string get_message(const std::string &topic);
+	std::string get_message(const std::string &topic) const;
 
 	/**
 	 * \brief Get a message from the default subscribe topic with timeout.
@@ -178,7 +178,7 @@ public:
 	 * The default subscribe topic can be set in the constructor.
 	 * \param duration The duration until timeout.
 	 */
-	std::string get_message(const std::chrono::duration<double> &duration);
+	std::string get_message(const std::chrono::duration<double> &duration) const;
 
 	/**
 	 * \brief Get a message from a specific topic with timeout.
@@ -188,7 +188,7 @@ public:
 	 * \param duration The duration until timeout.
 	 */
 	std::string get_message(const std::string &topic,
-				const std::chrono::duration<double> &duration);
+				const std::chrono::duration<double> &duration) const;
 
 	/**
 	 * \brief Connect to the mosquitto broker.
@@ -205,21 +205,21 @@ public:
 	void connect_to_broker(const std::string &host,
 				int port,
 				int keepalive,
-				const timeout_duration_t &timeout = timeout_duration_t::max());
+				const timeout_duration_t &timeout = timeout_duration_t::max()) const;
 
 	/**
 	 * \brief Disconnect from the mosquitto broker.
 	 *
 	 * Only disconnects if a connection was previously established, else nothing happens.
 	 */
-	void disconnect_from_broker();
+	void disconnect_from_broker() const;
 
 	/**
 	 * \brief Check if a connection is established.
 	 */
 	bool is_connected() const;
 private:
-	void resubscribe();
+	void resubscribe() const;
 	/**
 	 * \brief Callback for established connections.
 	 */
@@ -240,26 +240,30 @@ private:
 	 *
 	 * Uses a reference counter, so mosquitto library is only initialized, if there is no other
 	 * MQTT_communicator instance.
+	 * Unlike the mosquitto library function for initializing, this method is thread safe being
+	 * protected by a mutex.
 	 */
-	void init_mosq_lib();
+	void init_mosq_lib() const;
 
 	/**
 	 * \brief Cleans the mosquitto library up if necessary.
 	 *
 	 * Uses a reference counter, so mosquitto library is only cleaned up, if this is the last
 	 * MQTT_communicator instance.
+	 * Unlike the mosquitto library function for cleanup, this method is thread safe being
+	 * protected by a mutex.
 	 */
-	void cleanup_mosq_lib();
+	void cleanup_mosq_lib() const;
 
 	/**
 	 * \brief Starts the async mosquitto loop.
 	 */
-	void start_mosq_loop();
+	void start_mosq_loop() const;
 
 	/**
 	 * \brief Stops the async mosquitto loop.
 	 */
-	void stop_mosq_loop();
+	void stop_mosq_loop() const;
 
 	/**
 	 * \brief The topic to get messages from by default.
@@ -274,27 +278,32 @@ private:
 	/**
 	 * \brief A map with a topic as key and the associated subscription handler as value.
 	 */
-	std::unordered_map<std::string, std::shared_ptr<MQTT_subscription>> subscriptions;
+	mutable std::unordered_map<std::string, std::shared_ptr<MQTT_subscription>> subscriptions;
 
 	/**
 	 * \brief The mutex for safe access to the subscriptions map.
 	 */
-	std::mutex subscriptions_mutex;
+	mutable std::mutex subscriptions_mutex;
 
 	/**
 	 * \brief This flag states, if this MQTT_communicator is successfully connected.
 	 */
-	bool connected;
+	mutable bool connected;
 
 	/**
 	 * The mutex for safe access to the connected flag.
 	 */
-	std::mutex connected_mutex;
+	mutable std::mutex connected_mutex;
 
 	/**
 	 * The condition variable to signal an established connection (connected set to true).
 	 */
-	std::condition_variable connected_cv;
+	mutable std::condition_variable connected_cv;
+
+	/**
+	 * The mutex for safe access to the ref_count.
+	 */
+	static std::mutex ref_count_mutex;
 
 	/**
 	 * \brief The reference counter used for init/cleanup of the mosquitto library.
