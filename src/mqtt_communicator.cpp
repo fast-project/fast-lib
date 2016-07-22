@@ -170,7 +170,7 @@ MQTT_communicator::~MQTT_communicator()
 	FASTLIB_LOG(comm_log, trace) << "MQTT_communicator destructed.";
 }
 
-void MQTT_communicator::add_subscription(const std::string &topic, int qos)
+void MQTT_communicator::add_subscription(const std::string &topic, int qos) const
 {
 	// Save subscription in unordered_map.
 	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_get>(qos);
@@ -185,7 +185,7 @@ void MQTT_communicator::add_subscription(const std::string &topic, int qos)
 	}
 }
 
-void MQTT_communicator::add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos)
+void MQTT_communicator::add_subscription(const std::string &topic, std::function<void(std::string)> callback, int qos) const
 {
 	// Save subscription in unordered_map.
 	std::shared_ptr<MQTT_subscription> ptr = std::make_shared<MQTT_subscription_callback>(qos, std::move(callback));
@@ -200,7 +200,7 @@ void MQTT_communicator::add_subscription(const std::string &topic, std::function
 	}
 }
 
-void MQTT_communicator::remove_subscription(const std::string &topic)
+void MQTT_communicator::remove_subscription(const std::string &topic) const
 {
 	// Delete subscription from unordered_map.
 	// This does not invalidate references used by other threads due to use of shared_ptr.
@@ -246,6 +246,7 @@ void MQTT_communicator::on_disconnect(int rc)
 	FASTLIB_LOG(comm_log, trace) << "Connected flag is unset.";
 }
 
+
 std::regex topic_to_regex(const std::string &topic)
 {
 	// Replace "+" by "\w*"
@@ -278,12 +279,12 @@ void MQTT_communicator::on_message(const mosquitto_message *msg)
 
 }
 
-void MQTT_communicator::send_message(const std::string &message)
+void MQTT_communicator::send_message(const std::string &message) const
 {
 	send_message(message, "", 1);
 }
 
-void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos)
+void MQTT_communicator::send_message(const std::string &message, const std::string &topic, int qos) const
 {
 	FASTLIB_LOG(comm_log, trace) << "Sending message.";
 	if (!connected)
@@ -297,22 +298,22 @@ void MQTT_communicator::send_message(const std::string &message, const std::stri
 	FASTLIB_LOG(comm_log, trace) << "Message sent to topic " << real_topic << ".";
 }
 
-std::string MQTT_communicator::get_message()
+std::string MQTT_communicator::get_message() const
 {
 	return get_message(default_subscribe_topic, std::chrono::duration<double>::max());
 }
 
-std::string MQTT_communicator::get_message(const std::string &topic)
+std::string MQTT_communicator::get_message(const std::string &topic) const
 {
 	return get_message(topic, std::chrono::duration<double>::max());
 }
 
-std::string MQTT_communicator::get_message(const std::chrono::duration<double> &duration)
+std::string MQTT_communicator::get_message(const std::chrono::duration<double> &duration) const
 {
 	return get_message(default_subscribe_topic, duration);
 }
 
-std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration)
+std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration) const
 {
 	FASTLIB_LOG(comm_log, trace) << "Getting message for topic " << topic << ".";
 	if (!connected)
@@ -329,16 +330,18 @@ std::string MQTT_communicator::get_message(const std::string &topic, const std::
 }
 
 
-void MQTT_communicator::init_mosq_lib()
+void MQTT_communicator::init_mosq_lib() const
 {
+	std::lock_guard<std::mutex> lock(ref_count_mutex);
 	if (ref_count++ == 0) {
 		FASTLIB_LOG(comm_log, trace) << "Initialize mosquitto library.";
 		mosqpp::lib_init();
 	}
 }
 
-void MQTT_communicator::cleanup_mosq_lib()
+void MQTT_communicator::cleanup_mosq_lib() const
 {
+	std::lock_guard<std::mutex> lock(ref_count_mutex);
 	if (--ref_count == 0) {
 		FASTLIB_LOG(comm_log, trace) << "Clean mosquitto library up.";
 		mosqpp::lib_cleanup();
@@ -351,7 +354,7 @@ void MQTT_communicator::connect_to_broker(
 		const std::string &host,
 		int port,
 		int keepalive,
-		const timeout_duration_t &timeout)
+		const timeout_duration_t &timeout) const
 {
 	FASTLIB_LOG(comm_log, trace) << "Connect to MQTT broker.";
 	if (connected)
@@ -381,7 +384,7 @@ void MQTT_communicator::connect_to_broker(
 	resubscribe();
 }
 
-void MQTT_communicator::disconnect_from_broker()
+void MQTT_communicator::disconnect_from_broker() const
 {
 	// Disconnect from MQTT broker.
 	if (connected) {
@@ -394,7 +397,7 @@ bool MQTT_communicator::is_connected() const
 	return connected;
 }
 
-void MQTT_communicator::resubscribe()
+void MQTT_communicator::resubscribe() const
 {
 	if (!connected)
 		throw std::runtime_error("No connection established.");
@@ -409,7 +412,7 @@ void MQTT_communicator::resubscribe()
 	}
 }
 
-void MQTT_communicator::start_mosq_loop()
+void MQTT_communicator::start_mosq_loop() const
 {
 	FASTLIB_LOG(comm_log, trace) << "Start mosquitto loop";
 	int ret;
@@ -418,11 +421,13 @@ void MQTT_communicator::start_mosq_loop()
 
 }
 
-void MQTT_communicator::stop_mosq_loop()
+void MQTT_communicator::stop_mosq_loop() const
 {
 	FASTLIB_LOG(comm_log, trace) << "Stop mosquitto loop.";
 	loop_stop();
 }
+
+std::mutex MQTT_communicator::ref_count_mutex;
 
 unsigned int MQTT_communicator::ref_count = 0;
 
