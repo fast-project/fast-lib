@@ -237,7 +237,8 @@ Migrate::Migrate() :
 	migration_type("migration-type"),
 	rdma_migration("rdma-migration"),
 	pscom_hook_procs("pscom-hook-procs"),
-	transport("transport")
+	transport("transport"),
+	swap_with("swap-with")
 {
 }
 
@@ -248,7 +249,8 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", pscom_hook_procs),
-	transport("transport")
+	transport("transport"),
+	swap_with("swap-with")
 {
 }
 
@@ -262,6 +264,7 @@ YAML::Node Migrate::emit() const
 	merge_node(params, rdma_migration.emit());
 	merge_node(params, pscom_hook_procs.emit());
 	merge_node(params, transport.emit());
+	merge_node(params, swap_with.emit());
 	return node;
 }
 
@@ -275,6 +278,7 @@ void Migrate::load(const YAML::Node &node)
 		rdma_migration.load(node["parameter"]);
 		pscom_hook_procs.load(node["parameter"]);
 		transport.load(node["parameter"]);
+		swap_with.load(node["parameter"]);
 	}
 }
 
