@@ -94,8 +94,9 @@ std::string Task_container::type(bool enable_result_format) const
 YAML::Node Task_container::emit() const
 {
 	YAML::Node node;
-	node["task"] = type();
-	if (type() == "migrate vm") {
+	auto type_str = type();
+	node["task"] = type_str;
+	if (type_str == "migrate vm") {
 		merge_node(node, tasks.front()->emit());
 	} else {
 		node["vm-configurations"] = tasks;
