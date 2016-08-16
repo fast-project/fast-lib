@@ -10,20 +10,12 @@
 
 #include <iostream>
 
+// Alias merge_node function
+const auto &merge_node = fast::yaml::merge_node;
+
 namespace fast {
 namespace msg {
 namespace migfra {
-
-// merges rhs into lhs
-void merge_node(YAML::Node &lhs, const YAML::Node &rhs)
-{
-	for (const auto &node : rhs) {
-		std::string tag = YAML::Dump(node.first);
-		if (!lhs[tag]) {
-			lhs[tag] = rhs[tag];
-		}
-	}
-}
 
 Task::Task() :
 	concurrent_execution("concurrent-execution"),
@@ -94,8 +86,9 @@ std::string Task_container::type(bool enable_result_format) const
 YAML::Node Task_container::emit() const
 {
 	YAML::Node node;
-	node["task"] = type();
-	if (type() == "migrate vm") {
+	auto type_str = type();
+	node["task"] = type_str;
+	if (type_str == "migrate vm") {
 		merge_node(node, tasks.front()->emit());
 	} else {
 		node["vm-configurations"] = tasks;
