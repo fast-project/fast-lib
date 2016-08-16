@@ -10,20 +10,12 @@
 
 #include <iostream>
 
+// Alias merge_node function
+const auto &merge_node = fast::yaml::merge_node;
+
 namespace fast {
 namespace msg {
 namespace migfra {
-
-// merges rhs into lhs
-void merge_node(YAML::Node &lhs, const YAML::Node &rhs)
-{
-	for (const auto &node : rhs) {
-		std::string tag = YAML::Dump(node.first);
-		if (!lhs[tag]) {
-			lhs[tag] = rhs[tag];
-		}
-	}
-}
 
 Task::Task() :
 	concurrent_execution("concurrent-execution"),
