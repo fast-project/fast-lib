@@ -8,9 +8,6 @@
 
 #include <fast-lib/message/migfra/result.hpp>
 
-// Alias merge_node function
-const auto &merge_node = fast::yaml::merge_node;
-
 namespace fast {
 namespace msg {
 namespace migfra {
@@ -32,7 +29,7 @@ YAML::Node Result_container::emit() const
 	YAML::Node node;
 	node["result"] = title;
 	if (title == "vm migrated")
-		merge_node(node, results.at(0).emit());
+		fast::yaml::merge_node(node, results.at(0).emit());
 	else
 		node["list"] = results;
 	if (id != "")
