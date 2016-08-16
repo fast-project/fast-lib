@@ -12,15 +12,19 @@ struct Communication_tester :
 	std::string id;
 	std::string topic1;
 	std::string topic2;
+	std::string wildcard_topic1;
+	std::string wildcard_topic2;
 	std::string host;
 	int port;
 	int keepalive;
 	fast::MQTT_communicator comm;
 
 	Communication_tester(std::string host = "localhost") :
-		id("test-id"),
+		id(""),
 		topic1("test/topic1"),
 		topic2("test/topic2"),
+		wildcard_topic1("test/wildcard/#"),
+		wildcard_topic2("test/wildcard/+"),
 		host(host),
 		port(1883),
 		keepalive(60),
@@ -56,6 +60,12 @@ struct Communication_tester :
 		fructose_assert_no_exception(
 			comm.add_subscription(topic1)
 		);
+		fructose_assert_no_exception(
+			comm.add_subscription(wildcard_topic1)
+		);
+		fructose_assert_no_exception(
+			comm.add_subscription(wildcard_topic2)
+		);
 	}
 
 	void send_receive(const std::string &test_name)
@@ -73,10 +83,46 @@ struct Communication_tester :
 		fructose_assert_eq(msg, original_msg);
 	}
 
+	void wildcard1(const std::string &test_name)
+	{
+		(void) test_name;
+		fructose_assert(comm.is_connected());
+		const std::string original_msg("Hallo Welt");
+		std::string msg;
+		fructose_assert_no_exception(
+			comm.send_message(original_msg, "test/wildcard/topic-1")
+		);
+		fructose_assert_no_exception(
+			msg = comm.get_message(wildcard_topic1, std::chrono::seconds(5))
+		);
+		fructose_assert_eq(msg, original_msg);
+	}
+
+	void wildcard2(const std::string &test_name)
+	{
+		(void) test_name;
+		fructose_assert(comm.is_connected());
+		const std::string original_msg("Hallo Welt");
+		std::string msg;
+		fructose_assert_no_exception(
+			comm.send_message(original_msg, "test/wildcard/topic-1")
+		);
+		fructose_assert_no_exception(
+			msg = comm.get_message(wildcard_topic2, std::chrono::seconds(5))
+		);
+		fructose_assert_eq(msg, original_msg);
+	}
+
 	void unsubscribe(const std::string &test_name)
 	{
 		(void) test_name;
 		fructose_assert(comm.is_connected());
+		fructose_assert_no_exception(
+			comm.remove_subscription(wildcard_topic2)
+		);
+		fructose_assert_no_exception(
+			comm.remove_subscription(wildcard_topic1)
+		);
 		fructose_assert_no_exception(
 			comm.remove_subscription(topic1)
 		);
@@ -101,6 +147,8 @@ int main(int argc, char **argv)
 	tests.add_test("second communicator", &Communication_tester::second_communicator);
 	tests.add_test("subscribe", &Communication_tester::subscribe);
 	tests.add_test("send and receive", &Communication_tester::send_receive);
+	tests.add_test("wildcard #", &Communication_tester::wildcard1);
+	tests.add_test("wildcard +", &Communication_tester::wildcard2);
 	tests.add_test("unsubscribe", &Communication_tester::unsubscribe);
 	tests.add_test("disconnect", &Communication_tester::disconnect);
 	return tests.run(argc, argv);

@@ -249,10 +249,10 @@ void MQTT_communicator::on_disconnect(int rc)
 
 std::regex topic_to_regex(const std::string &topic)
 {
-	// Replace "+" by "\w*"
-	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"(\w*)");
-	// Replace "#" by "\w*(?:/\w*)*$"
-	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"(\w*(?:/\w*)*$)");
+	// Replace "+" by "[^/]*"
+	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"([^/]*)");
+	// Replace "#" by "[^/]*(?:/[^/]*)*$"
+	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"([^/]*(?:/[^/]*)*$)");
 	return std::regex(regex_topic);
 }
 
