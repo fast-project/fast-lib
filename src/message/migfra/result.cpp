@@ -40,7 +40,12 @@ YAML::Node Result_container::emit() const
 void Result_container::load(const YAML::Node &node)
 {
 	fast::load(title, node["result"]);
-	fast::load(results, node["list"]);
+	if (title == "vm migrated") {
+		results.emplace_back();
+		fast::load(results[0], node);
+	} else {
+		fast::load(results, node["list"]);
+	}
 	fast::load(id, node["id"], "");
 }
 
