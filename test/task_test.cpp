@@ -115,7 +115,7 @@ struct Task_tester :
 		mig1.dest_hostname = "server-B";
 		mig1.migration_type = "warm";
 		mig1.rdma_migration = true;
-		mig1.pscom_hook_procs = 1;
+		mig1.pscom_hook_procs = "2";
 
 		Migrate mig2;
 		auto buf = mig1.to_string();

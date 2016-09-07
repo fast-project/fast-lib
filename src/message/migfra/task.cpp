@@ -241,7 +241,19 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	dest_hostname(std::move(dest_hostname)),
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
-	pscom_hook_procs("pscom-hook-procs", pscom_hook_procs),
+	pscom_hook_procs("pscom-hook-procs", std::to_string(pscom_hook_procs)),
+	transport("transport"),
+	swap_with("swap-with")
+{
+}
+
+Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string migration_type, bool rdma_migration, bool concurrent_execution, std::string pscom_hook_procs, bool time_measurement) :
+	Task::Task(concurrent_execution, time_measurement),
+	vm_name(std::move(vm_name)),
+	dest_hostname(std::move(dest_hostname)),
+	migration_type("migration-type", std::move(migration_type)),
+	rdma_migration("rdma-migration", rdma_migration),
+	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
 	transport("transport"),
 	swap_with("swap-with")
 {
