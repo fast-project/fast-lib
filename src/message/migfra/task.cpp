@@ -200,14 +200,16 @@ void Start::load(const YAML::Node &node)
 }
 
 Stop::Stop() :
-	force("force")
+	force("force"),
+	undefine("undefine")
 {
 }
 
-Stop::Stop(std::string vm_name, bool force, bool concurrent_execution) :
+Stop::Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name(std::move(vm_name)),
-	force("force", force)
+	force("force", force),
+	undefine("undefine", undefine)
 {
 }
 
@@ -216,6 +218,7 @@ YAML::Node Stop::emit() const
 	YAML::Node node = Task::emit();
 	node["vm-name"] = vm_name;
 	merge_node(node, force.emit());
+	merge_node(node, undefine.emit());
 	return node;
 }
 
@@ -224,6 +227,7 @@ void Stop::load(const YAML::Node &node)
 	Task::load(node);
 	fast::load(vm_name, node["vm-name"]);
 	force.load(node);
+	undefine.load(node);
 }
 
 Migrate::Migrate() :

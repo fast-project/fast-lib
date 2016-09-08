@@ -134,15 +134,18 @@ struct Stop :
 	 * \brief Constructor for Stop task.
 	 *
 	 * \param vm_name The name of the virtual machine to stop.
+	 * \param force Force stopping the domain by using destroy instead of shutdown.
+	 * \param undefine Undefine the domain after stopping.
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
-	Stop(std::string vm_name, bool force, bool concurrent_execution);
+	Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execution);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
 	std::string vm_name;
 	Optional<bool> force;
+	Optional<bool> undefine;
 };
 
 /**

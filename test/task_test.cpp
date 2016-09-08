@@ -83,14 +83,17 @@ struct Task_tester :
 		Stop stop1;
 		stop1.vm_name = "vm1";
 		stop1.force = false;
+		stop1.undefine = true;
 
 		Stop stop2;
 		auto buf = stop1.to_string();
 		std::cout << "Serialized string: " << buf << std::endl;
 		stop2.from_string(buf);
 		fructose_assert(stop2.force.is_valid());
+		fructose_assert(stop2.undefine.is_valid());
 		fructose_assert_eq(stop2.vm_name, stop1.vm_name);
 		fructose_assert(stop2.force == stop1.force);
+		fructose_assert(stop2.undefine == stop1.undefine);
 	}
 
 	void stop2(const std::string &test_name)
