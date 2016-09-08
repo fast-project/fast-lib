@@ -33,7 +33,7 @@ public:
 	MQTT_subscription(int qos);
 	virtual ~MQTT_subscription() = default;
 	virtual void add_message(const mosquitto_message *msg) = 0;
-	virtual std::string get_message(const std::chrono::duration<double> &duration) = 0;
+	virtual std::string get_message(const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) = 0;
 	const int qos;
 };
 
@@ -47,7 +47,7 @@ class MQTT_subscription_get : public MQTT_subscription
 public:
 	MQTT_subscription_get(int qos);
 	void add_message(const mosquitto_message *msg) override;
-	std::string get_message(const std::chrono::duration<double> &duration) override;
+	std::string get_message(const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) override;
 private:
 	std::mutex msg_queue_mutex;
 	std::condition_variable msg_queue_empty_cv;
@@ -59,7 +59,7 @@ class MQTT_subscription_callback : public MQTT_subscription
 public:
 	MQTT_subscription_callback(int qos, std::function<void(std::string)> callback);
 	void add_message(const mosquitto_message *msg) override;
-	std::string get_message(const std::chrono::duration<double> &duration) override;
+	std::string get_message(const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) override;
 private:
 	std::string message;
 	std::function<void(std::string)> callback;
@@ -83,7 +83,7 @@ void MQTT_subscription_get::add_message(const mosquitto_message *msg)
 		msg_queue_empty_cv.notify_one();
 }
 
-std::string MQTT_subscription_get::get_message(const std::chrono::duration<double> &duration)
+std::string MQTT_subscription_get::get_message(const std::chrono::duration<double> &duration, std::string *actual_topic)
 {
 	std::unique_lock<std::mutex> lock(msg_queue_mutex);
 	if (duration == std::chrono::duration<double>::max()) {
@@ -98,6 +98,8 @@ std::string MQTT_subscription_get::get_message(const std::chrono::duration<doubl
 	messages.pop();
 	lock.unlock();
 	std::string buf(static_cast<char*>(msg->payload), msg->payloadlen);
+	if (actual_topic)
+		actual_topic->assign(msg->topic);
 	mosquitto_message_free(&msg);
 	return buf;
 }
@@ -114,9 +116,9 @@ void MQTT_subscription_callback::add_message(const mosquitto_message *msg)
 	callback(std::string(static_cast<char*>(msg->payload), msg->payloadlen));
 }
 
-std::string MQTT_subscription_callback::get_message(const std::chrono::duration<double> &duration)
+std::string MQTT_subscription_callback::get_message(const std::chrono::duration<double> &duration, std::string *actual_topic)
 {
-	(void) duration;
+	(void) duration, (void) actual_topic;
 	throw std::runtime_error("Error in get_message: This topic is subscribed with callback.");
 }
 
@@ -298,22 +300,22 @@ void MQTT_communicator::send_message(const std::string &message, const std::stri
 	FASTLIB_LOG(comm_log, trace) << "Message sent.";
 }
 
-std::string MQTT_communicator::get_message() const
+std::string MQTT_communicator::get_message(std::string *actual_topic) const
 {
-	return get_message(default_subscribe_topic, std::chrono::duration<double>::max());
+	return get_message(default_subscribe_topic, std::chrono::duration<double>::max(), actual_topic);
 }
 
-std::string MQTT_communicator::get_message(const std::string &topic) const
+std::string MQTT_communicator::get_message(const std::string &topic, std::string *actual_topic) const
 {
-	return get_message(topic, std::chrono::duration<double>::max());
+	return get_message(topic, std::chrono::duration<double>::max(), actual_topic);
 }
 
-std::string MQTT_communicator::get_message(const std::chrono::duration<double> &duration) const
+std::string MQTT_communicator::get_message(const std::chrono::duration<double> &duration, std::string *actual_topic) const
 {
-	return get_message(default_subscribe_topic, duration);
+	return get_message(default_subscribe_topic, duration, actual_topic);
 }
 
-std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration) const
+std::string MQTT_communicator::get_message(const std::string &topic, const std::chrono::duration<double> &duration, std::string *actual_topic) const
 {
 	FASTLIB_LOG(comm_log, trace) << "Getting message.";
 	if (!connected)
@@ -322,7 +324,7 @@ std::string MQTT_communicator::get_message(const std::string &topic, const std::
 		std::unique_lock<std::mutex> lock(subscriptions_mutex);
 		auto &subscription = subscriptions.at(topic);
 		lock.unlock();
-		return subscription->get_message(duration);
+		return subscription->get_message(duration, actual_topic);
 	} catch (const std::out_of_range &e) {
 		throw std::out_of_range("Topic not found in subscriptions.");
 	}

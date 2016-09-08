@@ -88,14 +88,17 @@ struct Communication_tester :
 		(void) test_name;
 		fructose_assert(comm.is_connected());
 		const std::string original_msg("Hallo Welt");
+		const std::string topic = "test/wildcard/topic-1";
 		std::string msg;
 		fructose_assert_no_exception(
-			comm.send_message(original_msg, "test/wildcard/topic-1")
+			comm.send_message(original_msg, topic)
 		);
+		std::string actual_topic;
 		fructose_assert_no_exception(
-			msg = comm.get_message(wildcard_topic1, std::chrono::seconds(5))
+			msg = comm.get_message(wildcard_topic1, std::chrono::seconds(5), &actual_topic)
 		);
 		fructose_assert_eq(msg, original_msg);
+		fructose_assert_eq(actual_topic, topic);
 	}
 
 	void wildcard2(const std::string &test_name)
@@ -103,14 +106,17 @@ struct Communication_tester :
 		(void) test_name;
 		fructose_assert(comm.is_connected());
 		const std::string original_msg("Hallo Welt");
+		const std::string topic = "test/wildcard/topic-1";
 		std::string msg;
 		fructose_assert_no_exception(
-			comm.send_message(original_msg, "test/wildcard/topic-1")
+			comm.send_message(original_msg, topic)
 		);
+		std::string actual_topic;
 		fructose_assert_no_exception(
-			msg = comm.get_message(wildcard_topic2, std::chrono::seconds(5))
+			msg = comm.get_message(wildcard_topic2, std::chrono::seconds(5), &actual_topic)
 		);
 		fructose_assert_eq(msg, original_msg);
+		fructose_assert_eq(actual_topic, topic);
 	}
 
 	void unsubscribe(const std::string &test_name)

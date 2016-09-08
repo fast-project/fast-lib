@@ -161,7 +161,7 @@ public:
 	 * This is a blocking method, which waits until a message is received.
 	 * The default subscribe topic can be set in the constructor.
 	 */
-	std::string get_message() const override;
+	std::string get_message(std::string *actual_topic = nullptr) const override;
 
 	/**
 	 * \brief Get a message from a specific topic.
@@ -169,7 +169,7 @@ public:
 	 * This is a blocking method, which waits until a message is received.
 	 * \param topic The topic to listen on for a message.
 	 */
-	std::string get_message(const std::string &topic) const;
+	std::string get_message(const std::string &topic, std::string *actual_topic = nullptr) const;
 
 	/**
 	 * \brief Get a message from the default subscribe topic with timeout.
@@ -178,7 +178,7 @@ public:
 	 * The default subscribe topic can be set in the constructor.
 	 * \param duration The duration until timeout.
 	 */
-	std::string get_message(const std::chrono::duration<double> &duration) const;
+	std::string get_message(const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) const;
 
 	/**
 	 * \brief Get a message from a specific topic with timeout.
@@ -188,7 +188,7 @@ public:
 	 * \param duration The duration until timeout.
 	 */
 	std::string get_message(const std::string &topic,
-				const std::chrono::duration<double> &duration) const;
+				const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) const;
 
 	/**
 	 * \brief Connect to the mosquitto broker.
