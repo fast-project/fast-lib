@@ -134,15 +134,18 @@ struct Stop :
 	 * \brief Constructor for Stop task.
 	 *
 	 * \param vm_name The name of the virtual machine to stop.
+	 * \param force Force stopping the domain by using destroy instead of shutdown.
+	 * \param undefine Undefine the domain after stopping.
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
-	Stop(std::string vm_name, bool force, bool concurrent_execution);
+	Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execution);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
 	std::string vm_name;
 	Optional<bool> force;
+	Optional<bool> undefine;
 };
 
 /**
@@ -164,6 +167,18 @@ struct Migrate :
 	 * \param time_measurement Measure execution time and send in Result.
 	 */
 	Migrate(std::string vm_name, std::string dest_hostname, std::string migration_type, bool rdma_migration, bool concurrent_execution, unsigned int pscom_hook_procs, bool time_measurement);
+	/**
+	 * \brief Constructor for Migrate task.
+	 *
+	 * \param vm_name The name of the virtual machine to migrate.
+	 * \param dest_hostname The name of the host to migrate to.
+	 * \param live_migration Option to enable live migration.
+	 * \param rdma_migration Option to enable rdma migration.
+	 * \param concurrent_execution Execute this Task in dedicated thread.
+	 * \param pscom_hook_procs Number of processes to suspend during migration as string or "auto" for auto detection.
+	 * \param time_measurement Measure execution time and send in Result.
+	 */
+	Migrate(std::string vm_name, std::string dest_hostname, std::string migration_type, bool rdma_migration, bool concurrent_execution, std::string pscom_hook_procs, bool time_measurement);
 
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
@@ -172,7 +187,7 @@ struct Migrate :
 	std::string dest_hostname;
 	Optional<std::string> migration_type;
 	Optional<bool> rdma_migration;
-	Optional<unsigned int> pscom_hook_procs;
+	Optional<std::string> pscom_hook_procs;
 	Optional<std::string> transport;
 	Optional<std::string> swap_with;
 };

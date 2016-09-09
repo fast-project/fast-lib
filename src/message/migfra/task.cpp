@@ -200,14 +200,16 @@ void Start::load(const YAML::Node &node)
 }
 
 Stop::Stop() :
-	force("force")
+	force("force"),
+	undefine("undefine")
 {
 }
 
-Stop::Stop(std::string vm_name, bool force, bool concurrent_execution) :
+Stop::Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name(std::move(vm_name)),
-	force("force", force)
+	force("force", force),
+	undefine("undefine", undefine)
 {
 }
 
@@ -216,6 +218,7 @@ YAML::Node Stop::emit() const
 	YAML::Node node = Task::emit();
 	node["vm-name"] = vm_name;
 	merge_node(node, force.emit());
+	merge_node(node, undefine.emit());
 	return node;
 }
 
@@ -224,6 +227,7 @@ void Stop::load(const YAML::Node &node)
 	Task::load(node);
 	fast::load(vm_name, node["vm-name"]);
 	force.load(node);
+	undefine.load(node);
 }
 
 Migrate::Migrate() :
@@ -241,7 +245,19 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	dest_hostname(std::move(dest_hostname)),
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
-	pscom_hook_procs("pscom-hook-procs", pscom_hook_procs),
+	pscom_hook_procs("pscom-hook-procs", std::to_string(pscom_hook_procs)),
+	transport("transport"),
+	swap_with("swap-with")
+{
+}
+
+Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string migration_type, bool rdma_migration, bool concurrent_execution, std::string pscom_hook_procs, bool time_measurement) :
+	Task::Task(concurrent_execution, time_measurement),
+	vm_name(std::move(vm_name)),
+	dest_hostname(std::move(dest_hostname)),
+	migration_type("migration-type", std::move(migration_type)),
+	rdma_migration("rdma-migration", rdma_migration),
+	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
 	transport("transport"),
 	swap_with("swap-with")
 {

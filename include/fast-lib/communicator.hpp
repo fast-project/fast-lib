@@ -37,7 +37,7 @@ public:
 	 * A pure virtual method to provide an interface to receive a message.
 	 * This is a blocking method which waits for a message.
 	 */
-	virtual std::string get_message() const = 0;
+	virtual std::string get_message(std::string *actual_topic = nullptr) const = 0;
 };
 
 } // namespace fast
