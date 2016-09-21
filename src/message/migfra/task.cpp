@@ -291,6 +291,8 @@ YAML::Node Migrate::emit() const
 	merge_node(params, transport.emit());
 	merge_node(params, swap_with.emit());
 	merge_node(params, vcpu_map.emit());
+	if (vcpu_map.is_valid())
+		params[vcpu_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
 	return node;
 }
 
@@ -325,6 +327,7 @@ YAML::Node Repin::emit() const
 	YAML::Node node = Task::emit();
 	node["vm-name"] = vm_name;
 	node["vcpu-map"] = vcpu_map;
+	node["vcpu-map"].SetStyle(YAML::EmitterStyle::Flow);
 	return node;
 }
 

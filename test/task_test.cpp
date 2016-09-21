@@ -119,6 +119,7 @@ struct Task_tester :
 		mig1.migration_type = "warm";
 		mig1.rdma_migration = true;
 		mig1.pscom_hook_procs = "2";
+		mig1.vcpu_map = {{0,1,2,3},{0,1,2,3},{0,1,2,3},{0,1,2,3}};
 
 		Migrate mig2;
 		auto buf = mig1.to_string();
@@ -127,11 +128,13 @@ struct Task_tester :
 		fructose_assert(mig2.migration_type.is_valid());
 		fructose_assert(mig2.rdma_migration.is_valid());
 		fructose_assert(mig2.pscom_hook_procs.is_valid());
+		fructose_assert(mig2.vcpu_map.is_valid());
 		fructose_assert_eq(mig2.vm_name, mig1.vm_name);
 		fructose_assert_eq(mig2.dest_hostname, mig1.dest_hostname);
 		fructose_assert(mig2.migration_type == mig1.migration_type);
 		fructose_assert(mig2.rdma_migration == mig1.rdma_migration);
 		fructose_assert(mig2.pscom_hook_procs == mig1.pscom_hook_procs);
+		fructose_assert(mig2.vcpu_map == mig1.vcpu_map);
 	}
 
 	void repin(const std::string &test_name)
