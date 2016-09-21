@@ -62,11 +62,11 @@ Task_container::Task_container(std::vector<std::shared_ptr<Task>> tasks, bool co
 
 std::string Task_container::type(bool enable_result_format) const
 {
-	std::array<std::string, 4> types;
+	std::array<std::string, 5> types;
 	if (enable_result_format)
-		types = {{"vm started", "vm stopped", "vm migrated", "quit"}};
+		types = {{"vm started", "vm stopped", "vm migrated", "vm repinned", "quit"}};
 	else
-		types = {{"start vm", "stop vm", "migrate vm", "quit"}};
+		types = {{"start vm", "stop vm", "migrate vm", "repin vm", "quit"}};
 	if (tasks.empty())
 		throw std::runtime_error("No subtasks available to get type.");
 	else if (std::dynamic_pointer_cast<Start>(tasks.front()))
@@ -75,8 +75,10 @@ std::string Task_container::type(bool enable_result_format) const
 		return types[1];
 	else if (std::dynamic_pointer_cast<Migrate>(tasks.front()))
 		return types[2];
-	else if (std::dynamic_pointer_cast<Quit>(tasks.front()))
+	else if (std::dynamic_pointer_cast<Repin>(tasks.front()))
 		return types[3];
+	else if (std::dynamic_pointer_cast<Quit>(tasks.front()))
+		return types[4];
 	else
 		throw std::runtime_error("Unknown type of Task.");
 
@@ -89,6 +91,8 @@ YAML::Node Task_container::emit() const
 	auto type_str = type();
 	node["task"] = type_str;
 	if (type_str == "migrate vm") {
+		merge_node(node, tasks.front()->emit());
+	} else if (type_str == "repin vm") {
 		merge_node(node, tasks.front()->emit());
 	} else {
 		node["vm-configurations"] = tasks;
@@ -119,6 +123,13 @@ std::vector<std::shared_ptr<Task>> load_migrate_task(const YAML::Node &node)
 	return std::vector<std::shared_ptr<Task>>(1, migrate_task);
 }
 
+std::vector<std::shared_ptr<Task>> load_repin_task(const YAML::Node &node)
+{
+	std::shared_ptr<Repin> repin_task;
+	fast::load(repin_task, node);
+	return std::vector<std::shared_ptr<Task>>(1, repin_task);
+}
+
 std::vector<std::shared_ptr<Task>> load_quit_task(const YAML::Node &node)
 {
 	std::shared_ptr<Quit> quit_task;
@@ -140,6 +151,8 @@ void Task_container::load(const YAML::Node &node)
 		tasks = load_stop_task(node);
 	} else if (type == "migrate vm") {
 		tasks = load_migrate_task(node);
+	} else if (type == "repin vm") {
+		tasks = load_repin_task(node);
 	} else if (type == "quit") {
 		tasks = load_quit_task(node);
 	} else {
@@ -235,7 +248,8 @@ Migrate::Migrate() :
 	rdma_migration("rdma-migration"),
 	pscom_hook_procs("pscom-hook-procs"),
 	transport("transport"),
-	swap_with("swap-with")
+	swap_with("swap-with"),
+	vcpu_map("vcpu-map")
 {
 }
 
@@ -247,7 +261,8 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", std::to_string(pscom_hook_procs)),
 	transport("transport"),
-	swap_with("swap-with")
+	swap_with("swap-with"),
+	vcpu_map("vcpu-map")
 {
 }
 
@@ -259,7 +274,8 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
 	transport("transport"),
-	swap_with("swap-with")
+	swap_with("swap-with"),
+	vcpu_map("vcpu-map")
 {
 }
 
@@ -274,6 +290,7 @@ YAML::Node Migrate::emit() const
 	merge_node(params, pscom_hook_procs.emit());
 	merge_node(params, transport.emit());
 	merge_node(params, swap_with.emit());
+	merge_node(params, vcpu_map.emit());
 	return node;
 }
 
@@ -288,7 +305,34 @@ void Migrate::load(const YAML::Node &node)
 		pscom_hook_procs.load(node["parameter"]);
 		transport.load(node["parameter"]);
 		swap_with.load(node["parameter"]);
+		vcpu_map.load(node["parameter"]);
 	}
+}
+
+Repin::Repin()
+{
+}
+
+Repin::Repin(std::string vm_name, std::vector<std::vector<unsigned int>> vcpu_map, bool concurrent_execution) :
+	Task::Task(concurrent_execution),
+	vm_name(std::move(vm_name)),
+	vcpu_map(std::move(vcpu_map))
+{
+}
+
+YAML::Node Repin::emit() const
+{
+	YAML::Node node = Task::emit();
+	node["vm-name"] = vm_name;
+	node["vcpu-map"] = vcpu_map;
+	return node;
+}
+
+void Repin::load(const YAML::Node &node)
+{
+	Task::load(node);
+	fast::load(vm_name, node["vm-name"]);
+	fast::load(vcpu_map, node["vcpu-map"]);
 }
 
 }

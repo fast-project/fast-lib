@@ -134,6 +134,20 @@ struct Task_tester :
 		fructose_assert(mig2.pscom_hook_procs == mig1.pscom_hook_procs);
 	}
 
+	void repin(const std::string &test_name)
+	{
+		(void) test_name;
+		Repin r1;
+		r1.vm_name = "vm1";
+		r1.vcpu_map = {{0,1,2,3},{0,1,2,3},{0,1,2,3},{0,1,2,3}};
+		Repin r2;
+		auto buf = r1.to_string();
+		std::cout << "Serialized string: " << buf << std::endl;
+		r2.from_string(buf);
+		fructose_assert_eq(r2.vm_name, r1.vm_name);
+		fructose_assert(r2.vcpu_map == r1.vcpu_map);
+	}
+
 	void quit(const std::string &test_name)
 	{
 		(void) test_name;
@@ -180,6 +194,22 @@ struct Task_tester :
 		tc2.from_string(buf);
 		fructose_assert(tc2.type() == "migrate vm");
 	}
+
+	void task_cont_repin(const std::string &test_name)
+	{
+		(void) test_name;
+		Task_container tc1;
+		auto repin = std::make_shared<Repin>();
+		repin->vm_name = "vm1";
+		repin->vcpu_map = {{0},{1},{2},{3}};
+		tc1.tasks.push_back(repin);
+
+		Task_container tc2;
+		auto buf = tc1.to_string();
+		std::cout << "Serialized string: " << buf << std::endl;
+		tc2.from_string(buf);
+		fructose_assert(tc2.type() == "repin vm");
+	}
 };
 
 int main(int argc, char **argv)
@@ -192,8 +222,10 @@ int main(int argc, char **argv)
 	tests.add_test("stop1", &Task_tester::stop1);
 	tests.add_test("stop2", &Task_tester::stop2);
 	tests.add_test("migrate", &Task_tester::migrate);
+	tests.add_test("repin", &Task_tester::repin);
 	tests.add_test("quit", &Task_tester::quit);
 	tests.add_test("task_cont_start", &Task_tester::task_cont_start);
 	tests.add_test("task_cont_migrate", &Task_tester::task_cont_migrate);
+	tests.add_test("task_cont_repin", &Task_tester::task_cont_repin);
 	return tests.run(argc, argv);
 }
