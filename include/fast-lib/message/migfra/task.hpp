@@ -190,6 +190,23 @@ struct Migrate :
 	Optional<std::string> pscom_hook_procs;
 	Optional<std::string> transport;
 	Optional<std::string> swap_with;
+	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
+};
+
+/**
+ * \brief Task to repin vcpus of a virtual machine.
+ */
+struct Repin :
+	public Task
+{
+	Repin();
+	Repin(std::string vm_name, std::vector<std::vector<unsigned int>> vcpu_map, bool concurrent_execution = true);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
+	std::string vm_name;
+	std::vector<std::vector<unsigned int>> vcpu_map;
 };
 
 /**
@@ -212,6 +229,7 @@ YAML_CONVERT_IMPL(fast::msg::migfra::Task_container)
 YAML_CONVERT_IMPL(fast::msg::migfra::Start)
 YAML_CONVERT_IMPL(fast::msg::migfra::Stop)
 YAML_CONVERT_IMPL(fast::msg::migfra::Migrate)
+YAML_CONVERT_IMPL(fast::msg::migfra::Repin)
 YAML_CONVERT_IMPL(fast::msg::migfra::Quit)
 
 #endif
