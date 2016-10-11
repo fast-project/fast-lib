@@ -51,6 +51,9 @@ struct Communication_tester :
 			comm_ptr.reset(new fast::MQTT_communicator("", topic1, host, port, keepalive, std::chrono::seconds(5)))
 		);
 		fructose_assert(comm_ptr->is_connected());
+		// Sleep a second before comm_ptr gets destroyed
+		// Otherwise there is a race between destruction and getting on_connect called (FIXME?)
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 	void subscribe(const std::string &test_name)
