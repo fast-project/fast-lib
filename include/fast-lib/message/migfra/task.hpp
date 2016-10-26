@@ -10,6 +10,7 @@
 #define FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 
 #include <fast-lib/message/migfra/pci_id.hpp>
+#include <fast-lib/message/migfra/ivshmem.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
 #include <fast-lib/optional.hpp>
 #include <fast-lib/serializable.hpp>
@@ -121,6 +122,7 @@ struct Start :
 	Optional<unsigned long> memory;
 	std::vector<PCI_id> pci_ids;
 	Optional<std::string> xml;
+	Optional<Device_ivshmem> ivshmem;
 };
 
 /**
