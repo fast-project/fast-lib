@@ -62,11 +62,11 @@ Task_container::Task_container(std::vector<std::shared_ptr<Task>> tasks, bool co
 
 std::string Task_container::type(bool enable_result_format) const
 {
-	std::array<std::string, 5> types;
+	std::array<std::string, 7> types;
 	if (enable_result_format)
-		types = {{"vm started", "vm stopped", "vm migrated", "vm repinned", "quit"}};
+		types = {{"vm started", "vm stopped", "vm migrated", "vm repinned", "vm suspended", "vm resumed", "quit"}};
 	else
-		types = {{"start vm", "stop vm", "migrate vm", "repin vm", "quit"}};
+		types = {{"start vm", "stop vm", "migrate vm", "repin vm", "suspend vm", "resume vm", "quit"}};
 	if (tasks.empty())
 		throw std::runtime_error("No subtasks available to get type.");
 	else if (std::dynamic_pointer_cast<Start>(tasks.front()))
@@ -77,8 +77,12 @@ std::string Task_container::type(bool enable_result_format) const
 		return types[2];
 	else if (std::dynamic_pointer_cast<Repin>(tasks.front()))
 		return types[3];
-	else if (std::dynamic_pointer_cast<Quit>(tasks.front()))
+	else if (std::dynamic_pointer_cast<Suspend>(tasks.front()))
 		return types[4];
+	else if (std::dynamic_pointer_cast<Resume>(tasks.front()))
+		return types[5];
+	else if (std::dynamic_pointer_cast<Quit>(tasks.front()))
+		return types[6];
 	else
 		throw std::runtime_error("Unknown type of Task.");
 
@@ -130,6 +134,20 @@ std::vector<std::shared_ptr<Task>> load_repin_task(const YAML::Node &node)
 	return std::vector<std::shared_ptr<Task>>(1, repin_task);
 }
 
+std::vector<std::shared_ptr<Task>> load_suspend_task(const YAML::Node &node)
+{
+	std::vector<std::shared_ptr<Suspend>> tasks;
+	fast::load(tasks, node["list"]);
+	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
+}
+
+std::vector<std::shared_ptr<Task>> load_resume_task(const YAML::Node &node)
+{
+	std::vector<std::shared_ptr<Resume>> tasks;
+	fast::load(tasks, node["list"]);
+	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
+}
+
 std::vector<std::shared_ptr<Task>> load_quit_task(const YAML::Node &node)
 {
 	std::shared_ptr<Quit> quit_task;
@@ -153,6 +171,10 @@ void Task_container::load(const YAML::Node &node)
 		tasks = load_migrate_task(node);
 	} else if (type == "repin vm") {
 		tasks = load_repin_task(node);
+	} else if (type == "suspend vm") {
+		tasks = load_suspend_task(node);
+	} else if (type == "resume vm") {
+		tasks = load_resume_task(node);
 	} else if (type == "quit") {
 		tasks = load_quit_task(node);
 	} else {
@@ -336,6 +358,52 @@ void Repin::load(const YAML::Node &node)
 	Task::load(node);
 	fast::load(vm_name, node["vm-name"]);
 	fast::load(vcpu_map, node["vcpu-map"]);
+}
+
+Suspend::Suspend()
+{
+}
+
+Suspend::Suspend(std::string vm_name, bool concurrent_execution) :
+	Task::Task(concurrent_execution),
+	vm_name(std::move(vm_name))
+{
+}
+
+YAML::Node Suspend::emit() const
+{
+	YAML::Node node = Task::emit();
+	node["vm-name"] = vm_name;
+	return node;
+}
+
+void Suspend::load(const YAML::Node &node)
+{
+	Task::load(node);
+	fast::load(vm_name, node["vm-name"]);
+}
+
+Resume::Resume()
+{
+}
+
+Resume::Resume(std::string vm_name, bool concurrent_execution) :
+	Task::Task(concurrent_execution),
+	vm_name(std::move(vm_name))
+{
+}
+
+YAML::Node Resume::emit() const
+{
+	YAML::Node node = Task::emit();
+	node["vm-name"] = vm_name;
+	return node;
+}
+
+void Resume::load(const YAML::Node &node)
+{
+	Task::load(node);
+	fast::load(vm_name, node["vm-name"]);
 }
 
 }
