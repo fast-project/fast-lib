@@ -210,6 +210,48 @@ struct Repin :
 };
 
 /**
+ * \brief Task to suspend the execution of a single virtual machine.
+ */
+struct Suspend :
+	public Task
+{
+	Suspend();
+	/**
+	 * \brief Constructor for Suspend task.
+	 *
+	 * \param vm_name The name of the virtual machine to stop.
+	 * \param concurrent_execution Execute this Task in dedicated thread.
+	 */
+	Suspend(std::string vm_name, bool concurrent_execution);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
+	std::string vm_name;
+};
+
+/**
+ * \brief Task to resume the execution of a single virtual machine.
+ */
+struct Resume :
+	public Task
+{
+	Resume();
+	/**
+	 * \brief Constructor for Suspend task.
+	 *
+	 * \param vm_name The name of the virtual machine to stop.
+	 * \param concurrent_execution Execute this Task in dedicated thread.
+	 */
+	Resume(std::string vm_name, bool concurrent_execution);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
+	std::string vm_name;
+};
+
+/**
  * \brief Task to quit migfra.
  */
 struct Quit :
@@ -230,6 +272,8 @@ YAML_CONVERT_IMPL(fast::msg::migfra::Start)
 YAML_CONVERT_IMPL(fast::msg::migfra::Stop)
 YAML_CONVERT_IMPL(fast::msg::migfra::Migrate)
 YAML_CONVERT_IMPL(fast::msg::migfra::Repin)
+YAML_CONVERT_IMPL(fast::msg::migfra::Suspend)
+YAML_CONVERT_IMPL(fast::msg::migfra::Resume)
 YAML_CONVERT_IMPL(fast::msg::migfra::Quit)
 
 #endif

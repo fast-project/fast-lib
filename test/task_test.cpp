@@ -151,6 +151,32 @@ struct Task_tester :
 		fructose_assert(r2.vcpu_map == r1.vcpu_map);
 	}
 
+	void suspend(const std::string &test_name)
+	{
+		(void) test_name;
+		Suspend suspend1;
+		suspend1.vm_name = "vm1";
+
+		Suspend suspend2;
+		auto buf = suspend1.to_string();
+		std::cout << "Serialized string: " << buf << std::endl;
+		suspend2.from_string(buf);
+		fructose_assert_eq(suspend2.vm_name, suspend1.vm_name);
+	}
+
+	void resume(const std::string &test_name)
+	{
+		(void) test_name;
+		Resume resume1;
+		resume1.vm_name = "vm1";
+
+		Resume resume2;
+		auto buf = resume1.to_string();
+		std::cout << "Serialized string: " << buf << std::endl;
+		resume2.from_string(buf);
+		fructose_assert_eq(resume2.vm_name, resume1.vm_name);
+	}
+
 	void quit(const std::string &test_name)
 	{
 		(void) test_name;
@@ -226,6 +252,8 @@ int main(int argc, char **argv)
 	tests.add_test("stop2", &Task_tester::stop2);
 	tests.add_test("migrate", &Task_tester::migrate);
 	tests.add_test("repin", &Task_tester::repin);
+	tests.add_test("suspend", &Task_tester::suspend);
+	tests.add_test("resume", &Task_tester::resume);
 	tests.add_test("quit", &Task_tester::quit);
 	tests.add_test("task_cont_start", &Task_tester::task_cont_start);
 	tests.add_test("task_cont_migrate", &Task_tester::task_cont_migrate);
