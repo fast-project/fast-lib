@@ -27,7 +27,7 @@ struct Device_ivshmem :
 	void load(const YAML::Node &node) override;
 
 	std::string id;
-	unsigned int size;
+	std::string size;
 	Optional<std::string> path;
 };
 

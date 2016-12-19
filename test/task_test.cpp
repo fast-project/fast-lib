@@ -45,7 +45,7 @@ struct Task_tester :
 		start1.pci_ids.emplace_back(0x15b3, 0x1004); // lookup emplace_back params
 		start1.ivshmem = fast::msg::migfra::Device_ivshmem();
 		start1.ivshmem.get().id = "test";
-		start1.ivshmem.get().size = 512;
+		start1.ivshmem.get().size = "512M";
 
 		Start start2;
 		auto buf = start1.to_string();

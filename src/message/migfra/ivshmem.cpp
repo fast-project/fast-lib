@@ -13,7 +13,7 @@ namespace msg {
 namespace migfra {
 
 Device_ivshmem::Device_ivshmem() :
-	size(0),
+	size("0"),
 	path("path")
 {
 }
@@ -22,16 +22,16 @@ YAML::Node Device_ivshmem::emit() const
 {
 	YAML::Node node;
 	node["id"] = id;
-	fast::yaml::merge_node(node, path.emit());
 	node["size"] = size;
+	fast::yaml::merge_node(node, path.emit());
 	return node;
 }
 
 void Device_ivshmem::load(const YAML::Node &node)
 {
 	fast::load(id, node["id"]);
-	path.load(node);
 	fast::load(size, node["size"]);
+	path.load(node);
 }
 
 }
