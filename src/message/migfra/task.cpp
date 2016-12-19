@@ -98,8 +98,10 @@ YAML::Node Task_container::emit() const
 		merge_node(node, tasks.front()->emit());
 	} else if (type_str == "repin vm") {
 		merge_node(node, tasks.front()->emit());
-	} else {
+	} else if (type_str == "start vm") {
 		node["vm-configurations"] = tasks;
+	} else {
+		node["list"] = tasks;
 	}
 	merge_node(node, concurrent_execution.emit());
 	merge_node(node, id.emit());
