@@ -190,7 +190,8 @@ Start::Start() :
 	vm_name("vm-name"),
 	vcpus("vcpus"),
 	memory("memory"),
-	xml("xml")
+	xml("xml"),
+	ivshmem("ivshmem")
 {
 }
 
@@ -200,7 +201,8 @@ Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std:
 	vcpus("vcpus", vcpus),
 	memory("memory", memory),
 	pci_ids(std::move(pci_ids)),
-	xml("xml")
+	xml("xml"),
+	ivshmem("ivshmem")
 {
 }
 
@@ -210,7 +212,8 @@ Start::Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execu
 	vcpus("vcpus"),
 	memory("memory"),
 	pci_ids(std::move(pci_ids)),
-	xml("xml", xml)
+	xml("xml", xml),
+	ivshmem("ivshmem")
 {
 }
 
@@ -221,6 +224,7 @@ YAML::Node Start::emit() const
 	merge_node(node, vcpus.emit());
 	merge_node(node, memory.emit());
 	merge_node(node, xml.emit());
+	merge_node(node, ivshmem.emit());
 	if (!pci_ids.empty())
 		node["pci-ids"] = pci_ids;
 	return node;
@@ -234,6 +238,7 @@ void Start::load(const YAML::Node &node)
 	memory.load(node);
 	fast::load(pci_ids, node["pci-ids"], std::vector<PCI_id>());
 	xml.load(node);
+	ivshmem.load(node);
 }
 
 Stop::Stop() :

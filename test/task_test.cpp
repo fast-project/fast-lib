@@ -43,6 +43,9 @@ struct Task_tester :
 		start1.vcpus = 8;
 		start1.memory = 8 * 1024 * 1024;
 		start1.pci_ids.emplace_back(0x15b3, 0x1004); // lookup emplace_back params
+		start1.ivshmem = fast::msg::migfra::Device_ivshmem();
+		start1.ivshmem.get().id = "test";
+		start1.ivshmem.get().size = "512M";
 
 		Start start2;
 		auto buf = start1.to_string();
@@ -51,11 +54,14 @@ struct Task_tester :
 		fructose_assert(start2.vm_name.is_valid());
 		fructose_assert(start2.vcpus.is_valid());
 		fructose_assert(start2.memory.is_valid());
+		fructose_assert(start2.ivshmem.is_valid());
 		fructose_assert_eq(start2.pci_ids.size(), 1);
 		fructose_assert(!start2.xml.is_valid());
 		fructose_assert(start2.vm_name == start1.vm_name);
 		fructose_assert(start2.vcpus == start1.vcpus);
 		fructose_assert(start2.memory == start1.memory);
+		fructose_assert(start2.ivshmem.get().id == start1.ivshmem.get().id);
+		fructose_assert(start2.ivshmem.get().size == start1.ivshmem.get().size);
 		fructose_assert_eq(start2.pci_ids[0], start1.pci_ids[0]);
 	}
 
