@@ -108,6 +108,12 @@ YAML::Node Task_container::emit() const
 	return node;
 }
 
+// Implemented here to allow the compiler to place the vtable in
+// this compilation unit. Would be emitted in every compilation
+// unit otherwise.
+Task_container::no_task_exception::no_task_exception(const std::string &str)
+	: std::runtime_error(str) {}
+
 std::vector<std::shared_ptr<Task>> load_start_task(const YAML::Node &node)
 {
 	std::vector<std::shared_ptr<Start>> tasks;
@@ -164,7 +170,7 @@ void Task_container::load(const YAML::Node &node)
 		fast::load(type, node["task"]);
 	} catch (const std::exception &e) {
 		throw Task_container::no_task_exception("Cannot find key \"task\" to load Task from YAML.");
-	} 
+	}
 	if (type == "start vm") {
 		tasks = load_start_task(node);
 	} else if (type == "stop vm") {
