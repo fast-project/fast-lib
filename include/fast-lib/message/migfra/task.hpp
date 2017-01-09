@@ -121,6 +121,7 @@ struct Start :
 	std::vector<PCI_id> pci_ids;
 	Optional<std::string> xml;
 	Optional<Device_ivshmem> ivshmem;
+	Optional<bool> transient;
 };
 
 /**
