@@ -150,6 +150,22 @@ struct Stop :
 };
 
 /**
+ * \brief Used for the swap-with option of the migrate task.
+ */
+struct Swap_with :
+	public fast::Serializable
+{
+	Swap_with();
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
+	std::string vm_name;
+	Optional<std::string> pscom_hook_procs;
+};
+
+
+/**
  * \brief Task to migrate a virtual machine.
  */
 struct Migrate :
@@ -190,7 +206,7 @@ struct Migrate :
 	Optional<bool> rdma_migration;
 	Optional<std::string> pscom_hook_procs;
 	Optional<std::string> transport;
-	Optional<std::string> swap_with;
+	Optional<Swap_with> swap_with;
 	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
 };
 
@@ -271,6 +287,7 @@ YAML_CONVERT_IMPL(fast::msg::migfra::Task)
 YAML_CONVERT_IMPL(fast::msg::migfra::Task_container)
 YAML_CONVERT_IMPL(fast::msg::migfra::Start)
 YAML_CONVERT_IMPL(fast::msg::migfra::Stop)
+YAML_CONVERT_IMPL(fast::msg::migfra::Swap_with)
 YAML_CONVERT_IMPL(fast::msg::migfra::Migrate)
 YAML_CONVERT_IMPL(fast::msg::migfra::Repin)
 YAML_CONVERT_IMPL(fast::msg::migfra::Suspend)

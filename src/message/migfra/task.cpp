@@ -17,6 +17,10 @@ namespace fast {
 namespace msg {
 namespace migfra {
 
+//
+// Task implementation
+//
+
 Task::Task() :
 	concurrent_execution("concurrent-execution"),
 	time_measurement("time-measurement"),
@@ -46,6 +50,10 @@ void Task::load(const YAML::Node &node)
 	time_measurement.load(node);
 	driver.load(node);
 }
+
+//
+// Task_container implementation
+//
 
 Task_container::Task_container() :
 	concurrent_execution("concurrent-execution"),
@@ -192,6 +200,10 @@ void Task_container::load(const YAML::Node &node)
 	id.load(node);
 }
 
+//
+// Start implementation
+//
+
 Start::Start() :
 	vm_name("vm-name"),
 	vcpus("vcpus"),
@@ -252,6 +264,10 @@ void Start::load(const YAML::Node &node)
 	transient.load(node);
 }
 
+//
+// Stop implementation
+//
+
 Stop::Stop() :
 	force("force"),
 	undefine("undefine")
@@ -282,6 +298,33 @@ void Stop::load(const YAML::Node &node)
 	force.load(node);
 	undefine.load(node);
 }
+
+//
+// Swap_with implementation
+//
+
+Swap_with::Swap_with() :
+	pscom_hook_procs("pscom-hook-procs")
+{
+}
+
+YAML::Node Swap_with::emit() const
+{
+	YAML::Node node;
+	node["vm-name"] = vm_name;
+	merge_node(node, pscom_hook_procs.emit());
+	return node;
+}
+
+void Swap_with::load(const YAML::Node &node)
+{
+	fast::load(vm_name, node["vm-name"]);
+	pscom_hook_procs.load(node);
+}
+
+//
+// Migrate implementation
+//
 
 Migrate::Migrate() :
 	migration_type("migration-type"),
@@ -351,6 +394,10 @@ void Migrate::load(const YAML::Node &node)
 	}
 }
 
+//
+// Repin implementation
+//
+
 Repin::Repin()
 {
 }
@@ -378,6 +425,10 @@ void Repin::load(const YAML::Node &node)
 	fast::load(vcpu_map, node["vcpu-map"]);
 }
 
+//
+// Suspend implementation
+//
+
 Suspend::Suspend()
 {
 }
@@ -400,6 +451,10 @@ void Suspend::load(const YAML::Node &node)
 	Task::load(node);
 	fast::load(vm_name, node["vm-name"]);
 }
+
+//
+// Resume implementation
+//
 
 Resume::Resume()
 {
