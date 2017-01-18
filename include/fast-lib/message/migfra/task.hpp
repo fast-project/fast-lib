@@ -162,6 +162,7 @@ struct Swap_with :
 
 	std::string vm_name;
 	Optional<std::string> pscom_hook_procs;
+	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
 };
 
 

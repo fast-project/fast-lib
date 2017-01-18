@@ -304,7 +304,8 @@ void Stop::load(const YAML::Node &node)
 //
 
 Swap_with::Swap_with() :
-	pscom_hook_procs("pscom-hook-procs")
+	pscom_hook_procs("pscom-hook-procs"),
+	vcpu_map("vcpu-map")
 {
 }
 
@@ -313,6 +314,7 @@ YAML::Node Swap_with::emit() const
 	YAML::Node node;
 	node["vm-name"] = vm_name;
 	merge_node(node, pscom_hook_procs.emit());
+	merge_node(node, vcpu_map.emit());
 	return node;
 }
 
@@ -320,6 +322,7 @@ void Swap_with::load(const YAML::Node &node)
 {
 	fast::load(vm_name, node["vm-name"]);
 	pscom_hook_procs.load(node);
+	vcpu_map.load(node);
 }
 
 //
