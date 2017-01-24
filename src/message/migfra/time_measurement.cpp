@@ -13,12 +13,17 @@ namespace migfra {
 void Times::clear()
 {
 	wall = 0LL;
+	start_timestamp = 0;
+	stop_timestamp = 0;
 }
 
-void get_times(Times &current)
+// Returns wall since epoch or last_wall using high_resolution_clock and timestamp using system_clock
+std::pair<nanosecond_type, std::time_t> get_time(nanosecond_type last_wall = 0)
 {
-	std::chrono::duration<nanosecond_type, std::nano> x(std::chrono::high_resolution_clock::now().time_since_epoch());
-	current.wall = x.count();
+	return std::make_pair<nanosecond_type, std::time_t>(
+		std::chrono::duration<nanosecond_type, std::nano>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - last_wall,
+		std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())
+	);
 }
 
 Timer::Timer()
@@ -35,23 +40,28 @@ Times Timer::elapsed() const noexcept
 {
 	if (is_stopped())
 		return times;
-	Times current;
-	get_times(current);
-	current.wall -= times.wall;
+	Times current(times);
+	std::tie(current.wall, current.stop_timestamp) = get_time(current.wall);
 	return current;
 }
 
-std::string Timer::format() const
+std::string Timer::format(const std::string &format) const
 {
 	const double sec = 1000000000.0L;
 	double wall_sec = static_cast<double>(times.wall) / sec;
-	return std::to_string(wall_sec);
+	if (format == "timestamps") {
+		std::string start_timestamp(std::ctime(&times.start_timestamp));
+		std::string stop_timestamp(std::ctime(&times.stop_timestamp));
+		return "wall: " + std::to_string(wall_sec) + " started: " + start_timestamp + " stopped: " + stop_timestamp;
+	} else {
+		return std::to_string(wall_sec);
+	}
 }
 
 void Timer::start() noexcept
 {
 	stopped = false;
-	get_times(times);
+	std::tie(times.wall, times.start_timestamp) = get_time();
 }
 
 void Timer::stop() noexcept
@@ -59,9 +69,7 @@ void Timer::stop() noexcept
 	if (is_stopped())
 		return;
 	stopped = true;
-	Times current;
-	get_times(current);
-	times.wall = current.wall - times.wall;
+	std::tie(times.wall, times.stop_timestamp) = get_time(times.wall);
 }
 
 void Timer::resume() noexcept
@@ -71,8 +79,9 @@ void Timer::resume() noexcept
 	times.wall -= current.wall;
 }
 
-Time_measurement::Time_measurement(bool enable_time_measurement) :
-	enabled(enable_time_measurement)
+Time_measurement::Time_measurement(bool enable_time_measurement, std::string format) :
+	enabled(enable_time_measurement),
+	format(format)
 {
 }
 
@@ -80,7 +89,7 @@ Time_measurement::~Time_measurement()
 {
 	for (auto &timer : timers) {
 		if (!timer.second.is_stopped()) {
-			FASTLIB_LOG(tm_log, error) << "Timer with name \"" + timer.first + "\" has not been stopped, but task is finished. Search for a tick without subsequent tock or ignore if there was a preceding error.";
+			FASTLIB_LOG(tm_log, warn) << "Timer with name \"" + timer.first + "\" has not been stopped, but task is finished. Search for a tick without subsequent tock or ignore if there was a preceding error.";
 		}
 	}
 }
@@ -114,7 +123,7 @@ YAML::Node Time_measurement::emit() const
 {
 	YAML::Node node;
 	for (auto &timer : timers) {
-		node[timer.first] = timer.second.format();
+		node[timer.first] = timer.second.format(format);
 	}
 	return node;
 }

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <ctime>
 
 namespace fast {
 namespace msg {
@@ -15,6 +16,8 @@ using nanosecond_type = std::int_least64_t;
 struct Times
 {
 	nanosecond_type wall;
+	std::time_t start_timestamp;
+	std::time_t stop_timestamp;
 	void clear();
 };
 
@@ -28,7 +31,7 @@ public:
 
 	bool is_stopped() const noexcept;
 	Times elapsed() const noexcept;
-	std::string format() const;
+	std::string format(const std::string &format = "") const;
 
 	void start() noexcept;
 	void stop() noexcept;
@@ -44,7 +47,7 @@ class Time_measurement :
 	public fast::Serializable
 {
 public:
-	explicit Time_measurement(bool enable_time_measurement = false);
+	explicit Time_measurement(bool enable_time_measurement = false, std::string format = "");
 	~Time_measurement();
 
 	void tick(const std::string &timer_name);
@@ -57,6 +60,7 @@ public:
 private:
 	bool enabled;
 	std::unordered_map<std::string, Timer> timers;
+	std::string format;
 };
 
 }
