@@ -315,6 +315,8 @@ YAML::Node Swap_with::emit() const
 	node["vm-name"] = vm_name;
 	merge_node(node, pscom_hook_procs.emit());
 	merge_node(node, vcpu_map.emit());
+	if (vcpu_map.is_valid())
+		node[vcpu_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
 	return node;
 }
 
