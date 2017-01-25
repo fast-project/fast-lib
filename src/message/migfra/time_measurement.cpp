@@ -11,6 +11,12 @@ namespace migfra {
 
 const double sec_in_nano = 1000000000.0L;
 
+//
+// Timer implementation
+//
+
+Timer::timepoint_type Timer::base_point = Timer::clock::now();
+
 Timer::Timer()
 {
 	start();
@@ -36,13 +42,13 @@ double Timer::wall_sec() const
 
 double Timer::start_sec() const
 {
-	duration_type start_duration = start_point.time_since_epoch();
+	duration_type start_duration = start_point - Timer::base_point;
 	return static_cast<double>(start_duration.count()) / sec_in_nano;
 }
 
 double Timer::stop_sec() const
 {
-	duration_type stop_duration = stop_point.time_since_epoch();
+	duration_type stop_duration = stop_point - Timer::base_point;
 	return static_cast<double>(stop_duration.count()) / sec_in_nano;
 }
 
@@ -74,6 +80,15 @@ void Timer::resume() noexcept
 	start_point = clock::now() - elapsed();
 	stopped = false;
 }
+
+void Timer::set_base_point()
+{
+	Timer::base_point = clock::now();
+}
+
+//
+// Time_measurement implementation
+//
 
 Time_measurement::Time_measurement(bool enable_time_measurement, std::string format) :
 	enabled(enable_time_measurement),

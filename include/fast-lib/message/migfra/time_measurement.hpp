@@ -35,10 +35,13 @@ public:
 	void stop() noexcept;
 	// Note that resume may alter the start_point.
 	void resume() noexcept;
+
+	static void set_base_point();
 private:
 	timepoint_type start_point;
 	timepoint_type stop_point;
 	bool stopped;
+	static timepoint_type base_point;
 };
 
 // TODO: Add timer guard.
