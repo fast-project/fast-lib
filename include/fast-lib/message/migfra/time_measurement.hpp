@@ -19,7 +19,7 @@ public:
 	using duration_type = std::chrono::duration<nanosecond_type, std::nano>;
 	using timepoint_type = std::chrono::time_point<clock, duration_type>;
 
-	Timer();
+	Timer(timepoint_type base_point = timepoint_type());
 	~Timer() = default;
 	Timer(const Timer &rhs) = default;
 	Timer & operator=(const Timer &rhs) = default;
@@ -41,7 +41,7 @@ private:
 	timepoint_type start_point;
 	timepoint_type stop_point;
 	bool stopped;
-	static timepoint_type base_point;
+	timepoint_type base_point;
 };
 
 // TODO: Add timer guard.
@@ -50,7 +50,7 @@ class Time_measurement :
 	public fast::Serializable
 {
 public:
-	explicit Time_measurement(bool enable_time_measurement = false, std::string format = "");
+	explicit Time_measurement(bool enable_time_measurement = false, std::string format = "", Timer::timepoint_type base_point = Timer::clock::now());
 	~Time_measurement();
 
 	void tick(const std::string &timer_name);
@@ -64,6 +64,7 @@ private:
 	bool enabled;
 	std::unordered_map<std::string, Timer> timers;
 	std::string format;
+	Timer::timepoint_type base_point;
 };
 
 }

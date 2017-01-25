@@ -15,9 +15,8 @@ const double sec_in_nano = 1000000000.0L;
 // Timer implementation
 //
 
-Timer::timepoint_type Timer::base_point = Timer::clock::now();
-
-Timer::Timer()
+Timer::Timer(timepoint_type base_point) :
+	base_point(base_point)
 {
 	start();
 }
@@ -42,13 +41,13 @@ double Timer::wall_sec() const
 
 double Timer::start_sec() const
 {
-	duration_type start_duration = start_point - Timer::base_point;
+	duration_type start_duration = start_point - base_point;
 	return static_cast<double>(start_duration.count()) / sec_in_nano;
 }
 
 double Timer::stop_sec() const
 {
-	duration_type stop_duration = stop_point - Timer::base_point;
+	duration_type stop_duration = stop_point - base_point;
 	return static_cast<double>(stop_duration.count()) / sec_in_nano;
 }
 
@@ -81,18 +80,14 @@ void Timer::resume() noexcept
 	stopped = false;
 }
 
-void Timer::set_base_point()
-{
-	Timer::base_point = clock::now();
-}
-
 //
 // Time_measurement implementation
 //
 
-Time_measurement::Time_measurement(bool enable_time_measurement, std::string format) :
+Time_measurement::Time_measurement(bool enable_time_measurement, std::string format, Timer::timepoint_type base_point) :
 	enabled(enable_time_measurement),
-	format(format)
+	format(format),
+	base_point(base_point)
 {
 }
 
@@ -110,7 +105,7 @@ void Time_measurement::tick(const std::string &timer_name)
 	if (enabled) {
 		if (timers.find(timer_name) != timers.end())
 			throw std::runtime_error("Timer with name \"" + timer_name + "\" already exists.");
-		timers[timer_name];
+		timers[timer_name] = Timer(base_point);
 	}
 }
 
