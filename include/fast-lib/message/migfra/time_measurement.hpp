@@ -11,14 +11,6 @@ namespace fast {
 namespace msg {
 namespace migfra {
 
-
-struct Times
-{
-
-
-	void clear();
-};
-
 class Timer
 {
 public:
