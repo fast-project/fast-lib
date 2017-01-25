@@ -2,7 +2,6 @@
 #include <fast-lib/log.hpp>
 
 #include <stdexcept>
-#include <chrono>
 
 FASTLIB_LOG_INIT(tm_log, "Time_measurement")
 
@@ -10,21 +9,7 @@ namespace fast {
 namespace msg {
 namespace migfra {
 
-void Times::clear()
-{
-	wall = 0LL;
-	start_timestamp = 0;
-	stop_timestamp = 0;
-}
-
-// Returns wall since epoch or last_wall using high_resolution_clock and timestamp using system_clock
-std::pair<nanosecond_type, std::time_t> get_time(nanosecond_type last_wall = 0)
-{
-	return std::make_pair<nanosecond_type, std::time_t>(
-		std::chrono::duration<nanosecond_type, std::nano>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - last_wall,
-		std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())
-	);
-}
+const double sec_in_nano = 1000000000.0L;
 
 Timer::Timer()
 {
@@ -36,47 +21,58 @@ bool Timer::is_stopped() const noexcept
 	return stopped;
 }
 
-Times Timer::elapsed() const noexcept
+Timer::duration_type Timer::elapsed() const
 {
 	if (is_stopped())
-		return times;
-	Times current(times);
-	std::tie(current.wall, current.stop_timestamp) = get_time(current.wall);
-	return current;
+		return stop_point - start_point;
+	return clock::now() - start_point;
+}
+
+double Timer::wall_sec() const
+{
+	auto duration = elapsed();
+	return static_cast<double>(duration.count()) / sec_in_nano;
+}
+
+double Timer::start_sec() const
+{
+	duration_type start_duration = start_point.time_since_epoch();
+	return static_cast<double>(start_duration.count()) / sec_in_nano;
+}
+
+double Timer::stop_sec() const
+{
+	duration_type stop_duration = stop_point.time_since_epoch();
+	return static_cast<double>(stop_duration.count()) / sec_in_nano;
 }
 
 std::string Timer::format(const std::string &format) const
 {
-	const double sec = 1000000000.0L;
-	double wall_sec = static_cast<double>(times.wall) / sec;
 	if (format == "timestamps") {
-		std::string start_timestamp(std::ctime(&times.start_timestamp));
-		std::string stop_timestamp(std::ctime(&times.stop_timestamp));
-		return "wall: " + std::to_string(wall_sec) + " started: " + start_timestamp + " stopped: " + stop_timestamp;
+		return "wall: " + std::to_string(wall_sec()) + " started: " + std::to_string(start_sec()) + " stopped: " + std::to_string(stop_sec());
 	} else {
-		return std::to_string(wall_sec);
+		return std::to_string(wall_sec());
 	}
 }
 
 void Timer::start() noexcept
 {
+	start_point = clock::now();
 	stopped = false;
-	std::tie(times.wall, times.start_timestamp) = get_time();
 }
 
 void Timer::stop() noexcept
 {
 	if (is_stopped())
 		return;
+	stop_point = clock::now();
 	stopped = true;
-	std::tie(times.wall, times.stop_timestamp) = get_time(times.wall);
 }
 
 void Timer::resume() noexcept
 {
-	Times current(times);
-	start();
-	times.wall -= current.wall;
+	start_point = clock::now() - elapsed();
+	stopped = false;
 }
 
 Time_measurement::Time_measurement(bool enable_time_measurement, std::string format) :

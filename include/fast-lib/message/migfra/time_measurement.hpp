@@ -5,39 +5,47 @@
 
 #include <string>
 #include <unordered_map>
-#include <ctime>
+#include <chrono>
 
 namespace fast {
 namespace msg {
 namespace migfra {
 
-using nanosecond_type = std::int_least64_t;
 
 struct Times
 {
-	nanosecond_type wall;
-	std::time_t start_timestamp;
-	std::time_t stop_timestamp;
+
+
 	void clear();
 };
 
 class Timer
 {
 public:
+	using nanosecond_type = std::int_least64_t;
+	using clock = std::chrono::high_resolution_clock;
+	using duration_type = std::chrono::duration<nanosecond_type, std::nano>;
+	using timepoint_type = std::chrono::time_point<clock, duration_type>;
+
 	Timer();
-	~Timer() noexcept = default;
-	Timer(const Timer &rhs) noexcept = default;
-	Timer & operator=(const Timer &rhs) noexcept = default;
+	~Timer() = default;
+	Timer(const Timer &rhs) = default;
+	Timer & operator=(const Timer &rhs) = default;
 
 	bool is_stopped() const noexcept;
-	Times elapsed() const noexcept;
+	duration_type elapsed() const;
+	double wall_sec() const;
+	double start_sec() const;
+	double stop_sec() const;
 	std::string format(const std::string &format = "") const;
 
 	void start() noexcept;
 	void stop() noexcept;
+	// Note that resume may alter the start_point.
 	void resume() noexcept;
 private:
-	Times times;
+	timepoint_type start_point;
+	timepoint_type stop_point;
 	bool stopped;
 };
 
