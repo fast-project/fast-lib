@@ -176,7 +176,7 @@ void Task_container::load(const YAML::Node &node)
 	std::string type;
 	try {
 		fast::load(type, node["task"]);
-	} catch (const std::exception /*&e*/) {
+	} catch (const std::exception &/*e*/) {
 		throw Task_container::no_task_exception("Cannot find key \"task\" to load Task from YAML.");
 	}
 	if (type == "start vm") {

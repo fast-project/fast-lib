@@ -328,7 +328,7 @@ std::string MQTT_communicator::get_message(const std::string &topic, const std::
 		auto &subscription = subscriptions.at(topic);
 		lock.unlock();
 		return subscription->get_message(duration, actual_topic);
-	} catch (const std::out_of_range /*&e*/) {
+	} catch (const std::out_of_range &/*e*/) {
 		throw std::out_of_range("Topic not found in subscriptions.");
 	}
 }
