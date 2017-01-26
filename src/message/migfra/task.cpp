@@ -122,49 +122,49 @@ YAML::Node Task_container::emit() const
 Task_container::no_task_exception::no_task_exception(const std::string &str)
 	: std::runtime_error(str) {}
 
-std::vector<std::shared_ptr<Task>> load_start_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_start_task(const YAML::Node &node)
 {
 	std::vector<std::shared_ptr<Start>> tasks;
 	fast::load(tasks, node["vm-configurations"]);
 	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
 }
 
-std::vector<std::shared_ptr<Task>> load_stop_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_stop_task(const YAML::Node &node)
 {
 	std::vector<std::shared_ptr<Stop>> tasks;
 	fast::load(tasks, node["list"]);
 	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
 }
 
-std::vector<std::shared_ptr<Task>> load_migrate_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_migrate_task(const YAML::Node &node)
 {
 	std::shared_ptr<Migrate> migrate_task;
 	fast::load(migrate_task, node);
 	return std::vector<std::shared_ptr<Task>>(1, migrate_task);
 }
 
-std::vector<std::shared_ptr<Task>> load_repin_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_repin_task(const YAML::Node &node)
 {
 	std::shared_ptr<Repin> repin_task;
 	fast::load(repin_task, node);
 	return std::vector<std::shared_ptr<Task>>(1, repin_task);
 }
 
-std::vector<std::shared_ptr<Task>> load_suspend_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_suspend_task(const YAML::Node &node)
 {
 	std::vector<std::shared_ptr<Suspend>> tasks;
 	fast::load(tasks, node["list"]);
 	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
 }
 
-std::vector<std::shared_ptr<Task>> load_resume_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_resume_task(const YAML::Node &node)
 {
 	std::vector<std::shared_ptr<Resume>> tasks;
 	fast::load(tasks, node["list"]);
 	return std::vector<std::shared_ptr<Task>>(tasks.begin(), tasks.end());
 }
 
-std::vector<std::shared_ptr<Task>> load_quit_task(const YAML::Node &node)
+static std::vector<std::shared_ptr<Task>> load_quit_task(const YAML::Node &node)
 {
 	std::shared_ptr<Quit> quit_task;
 	fast::load(quit_task, node);
@@ -176,7 +176,7 @@ void Task_container::load(const YAML::Node &node)
 	std::string type;
 	try {
 		fast::load(type, node["task"]);
-	} catch (const std::exception &e) {
+	} catch (const std::exception /*&e*/) {
 		throw Task_container::no_task_exception("Cannot find key \"task\" to load Task from YAML.");
 	}
 	if (type == "start vm") {
