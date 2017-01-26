@@ -22,10 +22,22 @@ FASTLIB_LOG_SET_LEVEL_GLOBAL(comm_log, trace);
 namespace fast {
 
 /// Helper function to make error codes human readable.
-std::string mosq_err_string(const std::string &str, int code)
+static std::string mosq_err_string(const std::string &str, int code)
 {
 	return str + mosqpp::strerror(code);
 }
+
+/// Helper function to convert a given topic into a regular expression
+static std::regex topic_to_regex(const std::string &topic)
+{
+	// Replace "+" by "[^/]*"
+	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"([^/]*)");
+	// Replace "#" by "[^/]*(?:/[^/]*)*$"
+	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"([^/]*(?:/[^/]*)*$)");
+	return std::regex(regex_topic);
+}
+
+
 
 class MQTT_subscription
 {
@@ -248,15 +260,6 @@ void MQTT_communicator::on_disconnect(int rc)
 	FASTLIB_LOG(comm_log, trace) << "Connected flag is unset.";
 }
 
-
-std::regex topic_to_regex(const std::string &topic)
-{
-	// Replace "+" by "[^/]*"
-	auto regex_topic = std::regex_replace(topic, std::regex(R"((\+))"), R"([^/]*)");
-	// Replace "#" by "[^/]*(?:/[^/]*)*$"
-	regex_topic = std::regex_replace(regex_topic, std::regex(R"((#))"), R"([^/]*(?:/[^/]*)*$)");
-	return std::regex(regex_topic);
-}
 
 void MQTT_communicator::on_message(const mosquitto_message *msg)
 {
