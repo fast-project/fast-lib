@@ -51,6 +51,8 @@ class Time_measurement :
 {
 public:
 	explicit Time_measurement(bool enable_time_measurement = false, std::string format = "", Timer::timepoint_type base_point = Timer::clock::now());
+	Time_measurement(const Time_measurement &rhs) = default;
+	Time_measurement & operator=(const Time_measurement &rhs) = default;
 	~Time_measurement();
 
 	void tick(const std::string &timer_name);

@@ -114,7 +114,7 @@ void Time_measurement::tock(const std::string &timer_name)
 	if (enabled) {
 		try {
 			timers.at(timer_name).stop();
-		} catch (const std::out_of_range &e) {
+		} catch (const std::out_of_range /*&e*/) {
 			throw std::runtime_error("Timer with name \"" + timer_name + "\" not found. Search for a tock without preceding tick.");
 		}
 	}

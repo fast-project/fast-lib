@@ -297,7 +297,7 @@ void MQTT_communicator::send_message(const std::string &message, const std::stri
 	// Use default topic if empty string is passed.
 	auto &real_topic = topic == "" ? default_publish_topic : topic;
 	// Publish message to topic.
-	int ret = publish(nullptr, real_topic.c_str(), message.size(), message.c_str(), qos, false);
+	int ret = publish(nullptr, real_topic.c_str(), static_cast<int>(message.size()), message.c_str(), qos, false);
 	if (ret != MOSQ_ERR_SUCCESS)
 		throw std::runtime_error(mosq_err_string("Error sending message: ", ret));
 	FASTLIB_LOG(comm_log, trace) << "Message sent to topic " << real_topic << ".";
@@ -328,10 +328,9 @@ std::string MQTT_communicator::get_message(const std::string &topic, const std::
 		auto &subscription = subscriptions.at(topic);
 		lock.unlock();
 		return subscription->get_message(duration, actual_topic);
-	} catch (const std::out_of_range &e) {
+	} catch (const std::out_of_range /*&e*/) {
 		throw std::out_of_range("Topic not found in subscriptions.");
 	}
-	FASTLIB_LOG(comm_log, trace) << "Message got.";
 }
 
 
