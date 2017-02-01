@@ -269,6 +269,8 @@ void Start::load(const YAML::Node &node)
 //
 
 Stop::Stop() :
+	vm_name("vm-name"),
+	regex("regex"),
 	force("force"),
 	undefine("undefine")
 {
@@ -276,7 +278,8 @@ Stop::Stop() :
 
 Stop::Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
-	vm_name(std::move(vm_name)),
+	vm_name("vm-name", std::move(vm_name)),
+	regex("regex"),
 	force("force", force),
 	undefine("undefine", undefine)
 {
@@ -285,7 +288,8 @@ Stop::Stop(std::string vm_name, bool force, bool undefine, bool concurrent_execu
 YAML::Node Stop::emit() const
 {
 	YAML::Node node = Task::emit();
-	node["vm-name"] = vm_name;
+	merge_node(node, vm_name.emit());
+	merge_node(node, regex.emit());
 	merge_node(node, force.emit());
 	merge_node(node, undefine.emit());
 	return node;
@@ -294,7 +298,8 @@ YAML::Node Stop::emit() const
 void Stop::load(const YAML::Node &node)
 {
 	Task::load(node);
-	fast::load(vm_name, node["vm-name"]);
+	vm_name.load(node);
+	regex.load(node);
 	force.load(node);
 	undefine.load(node);
 }

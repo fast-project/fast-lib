@@ -144,7 +144,8 @@ struct Stop :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-	std::string vm_name;
+	Optional<std::string> vm_name;
+	Optional<std::string> regex;
 	Optional<bool> force;
 	Optional<bool> undefine;
 };
