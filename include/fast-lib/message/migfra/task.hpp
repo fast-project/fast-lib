@@ -118,10 +118,12 @@ struct Start :
 	Optional<std::string> vm_name;
 	Optional<unsigned int> vcpus;
 	Optional<unsigned long> memory;
+	Optional<std::vector<std::vector<unsigned int>>> memnode_map;
 	std::vector<PCI_id> pci_ids;
 	Optional<std::string> xml;
 	Optional<Device_ivshmem> ivshmem;
 	Optional<bool> transient;
+	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
 };
 
 /**
