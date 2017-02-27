@@ -248,6 +248,8 @@ YAML::Node Start::emit() const
 	merge_node(node, vcpus.emit());
 	merge_node(node, memory.emit());
 	merge_node(node, memnode_map.emit());
+	if (memnode_map.is_valid())
+		node[memnode_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
 	merge_node(node, xml.emit());
 	merge_node(node, ivshmem.emit());
 	merge_node(node, transient.emit());
