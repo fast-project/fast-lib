@@ -123,6 +123,7 @@ struct Start :
 	Optional<std::string> xml;
 	Optional<Device_ivshmem> ivshmem;
 	Optional<bool> transient;
+	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
 };
 
 /**
