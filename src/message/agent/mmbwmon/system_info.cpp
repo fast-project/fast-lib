@@ -12,7 +12,6 @@ system_info::system_info(const size_t _threads, const size_t _smt, const size_t 
 YAML::Node system_info::emit() const
 {
 	YAML::Node node;
-	node["task"] = "mmbwmon system info";
 	node["threads"] = threads;
 	node["smt"] = smt;
 	node["numa"] = numa;
