@@ -43,8 +43,13 @@ public:
 
 	T & get();
 	const T & get() const;
+
+	template<typename U>
+	constexpr const T & get_or(U &&default_value) const;
+
 	T & operator*();
 	const T & operator*() const;
+
 	T * operator->();
 	T * operator->() const;
 
@@ -168,6 +173,13 @@ const T & Optional<T>::get() const
 	if (!valid)
 		throw std::runtime_error("Optional value not valid.");
 	return *ptr;
+}
+
+template<typename T>
+template<typename U>
+constexpr const T & Optional<T>::get_or(U &&default_value) const
+{
+	return valid ? get() : default_value;
 }
 
 template<typename T>
