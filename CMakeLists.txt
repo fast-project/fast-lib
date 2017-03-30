@@ -43,8 +43,8 @@ set(FASTLIB "fastlib")
 
 # Define version number
 set(FASTLIB_VERSION_MAJOR "0")
-set(FASTLIB_VERSION_MINOR "3")
-set(FASTLIB_VERSION_PATCH "2")
+set(FASTLIB_VERSION_MINOR "4")
+set(FASTLIB_VERSION_PATCH "0")
 set(FASTLIB_VERSION "${FASTLIB_VERSION_MAJOR}.${FASTLIB_VERSION_MINOR}.${FASTLIB_VERSION_PATCH}")
 
 # Check compiler version
@@ -134,6 +134,7 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/reply.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/stop.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/restart.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/system_info.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/pci_id.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/ivshmem.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/time_measurement.hpp"
@@ -154,6 +155,7 @@ set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/reply.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/stop.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/restart.cpp"
+ 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/system_info.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/pci_id.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/ivshmem.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/time_measurement.cpp"
