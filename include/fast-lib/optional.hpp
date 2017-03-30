@@ -51,7 +51,7 @@ public:
 	const T & operator*() const;
 
 	T * operator->();
-	T * operator->() const;
+	const T * operator->() const;
 
 	std::string get_tag() const;
 
@@ -195,13 +195,13 @@ const T & Optional<T>::operator*() const
 }
 
 template<typename T>
-T * Optional<T>::operator->() const
+T * Optional<T>::operator->()
 {
 	return &get();
 }
 
 template<typename T>
-T * Optional<T>::operator->()
+const T * Optional<T>::operator->() const
 {
 	return &get();
 }
