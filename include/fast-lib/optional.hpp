@@ -44,8 +44,7 @@ public:
 	T & get();
 	const T & get() const;
 
-	template<typename U>
-	constexpr const T & get_or(U &&default_value) const;
+	constexpr const T & get_or(const T &default_value) const;
 
 	T & operator*();
 	const T & operator*() const;
@@ -176,8 +175,7 @@ const T & Optional<T>::get() const
 }
 
 template<typename T>
-template<typename U>
-constexpr const T & Optional<T>::get_or(U &&default_value) const
+constexpr const T & Optional<T>::get_or(const T &default_value) const
 {
 	return valid ? get() : default_value;
 }
