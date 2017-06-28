@@ -10,6 +10,7 @@
 #define FAST_LIB_MESSAGE_MIGFRA_TASK_HPP
 
 #include <fast-lib/message/migfra/ivshmem.hpp>
+#include <fast-lib/message/migfra/dhcp_info.hpp>
 #include <fast-lib/message/migfra/pci_id.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
 #include <fast-lib/optional.hpp>
@@ -116,9 +117,11 @@ struct Start :
 	void load(const YAML::Node &node) override;
 
 	Optional<std::string> vm_name;
+	Optional<std::string> base_name;
 	Optional<unsigned int> vcpus;
 	Optional<unsigned long> memory;
 	Optional<std::vector<std::vector<unsigned int>>> memnode_map;
+	std::vector<DHCP_info> dhcp_info;
 	std::vector<PCI_id> pci_ids;
 	Optional<std::string> xml;
 	Optional<Device_ivshmem> ivshmem;

@@ -206,6 +206,7 @@ void Task_container::load(const YAML::Node &node)
 
 Start::Start() :
 	vm_name("vm-name"),
+	base_name("base-name"),
 	vcpus("vcpus"),
 	memory("memory"),
 	memnode_map("memnode-map"),
@@ -219,6 +220,7 @@ Start::Start() :
 Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name("vm-name", std::move(vm_name)),
+	base_name("base-name"),
 	vcpus("vcpus", vcpus),
 	memory("memory", memory),
 	memnode_map("memnode-map"),
@@ -233,6 +235,7 @@ Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std:
 Start::Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name("vm-name"),
+	base_name("base-name"),
 	vcpus("vcpus"),
 	memory("memory"),
 	memnode_map("memnode-map"),
@@ -248,6 +251,7 @@ YAML::Node Start::emit() const
 {
 	YAML::Node node = Task::emit();
 	merge_node(node, vm_name.emit());
+	merge_node(node, base_name.emit());
 	merge_node(node, vcpus.emit());
 	merge_node(node, memory.emit());
 	merge_node(node, memnode_map.emit());
@@ -258,6 +262,8 @@ YAML::Node Start::emit() const
 	merge_node(node, transient.emit());
 	if (!pci_ids.empty())
 		node["pci-ids"] = pci_ids;
+	if (!pci_ids.empty())
+		node["dhcp-info"] = dhcp_info;
 	merge_node(node, vcpu_map.emit());
 	if (vcpu_map.is_valid())
 		node[vcpu_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
@@ -268,10 +274,12 @@ void Start::load(const YAML::Node &node)
 {
 	Task::load(node);
 	vm_name.load(node);
+	base_name.load(node);
 	vcpus.load(node);
 	memory.load(node);
 	memnode_map.load(node);
 	fast::load(pci_ids, node["pci-ids"], std::vector<PCI_id>());
+	fast::load(dhcp_info, node["dhcp-info"], std::vector<DHCP_info>());
 	xml.load(node);
 	ivshmem.load(node);
 	transient.load(node);
