@@ -136,6 +136,7 @@ set(HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/restart.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/agent/mmbwmon/system_info.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/pci_id.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/dhcp_info.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/ivshmem.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/time_measurement.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/fast-lib/message/migfra/result.hpp"
@@ -157,6 +158,7 @@ set(SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/restart.cpp"
  	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/agent/mmbwmon/system_info.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/pci_id.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/dhcp_info.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/ivshmem.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/time_measurement.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/message/migfra/result.cpp"
@@ -246,7 +248,13 @@ MERGE_STATIC_LIBRARIES(${FASTLIB} ALL "${LIBS}")
 
 # As librt should always be available it is linked dynamically and therefore has to be linked in applications
 # that use fast-lib as well.
-target_link_libraries(${FASTLIB} -lrt)
+if (UNIX AND NOT APPLE)
+	find_library(LIBRT rt)
+	if (LIBRT)
+		target_link_libraries(${FASTLIB} -lrt)
+	endif (LIBRT)
+endif (UNIX AND NOT APPLE)
+
 
 # Install
 install(TARGETS "${FASTLIB}"
