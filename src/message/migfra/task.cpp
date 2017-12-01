@@ -212,7 +212,9 @@ Start::Start() :
 	xml("xml"),
 	ivshmem("ivshmem"),
 	transient("transient"),
-	vcpu_map("vcpu-map")
+	vcpu_map("vcpu-map"),
+	probe_with_ssh("probe-with-ssh"),
+	probe_hostname("probe-hostname")
 {
 }
 
@@ -226,7 +228,9 @@ Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std:
 	xml("xml"),
 	ivshmem("ivshmem"),
 	transient("transient"),
-	vcpu_map("vcpu-map")
+	vcpu_map("vcpu-map"),
+	probe_with_ssh("probe-with-ssh"),
+	probe_hostname("probe-hostname")
 {
 }
 
@@ -240,7 +244,9 @@ Start::Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execu
 	xml("xml", xml),
 	ivshmem("ivshmem"),
 	transient("transient"),
-	vcpu_map("vcpu-map")
+	vcpu_map("vcpu-map"),
+	probe_with_ssh("probe-with-ssh"),
+	probe_hostname("probe-hostname")
 {
 }
 
@@ -261,6 +267,8 @@ YAML::Node Start::emit() const
 	merge_node(node, vcpu_map.emit());
 	if (vcpu_map.is_valid())
 		node[vcpu_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
+	merge_node(node, probe_with_ssh.emit());
+	merge_node(node, probe_hostname.emit());
 	return node;
 }
 
@@ -276,6 +284,8 @@ void Start::load(const YAML::Node &node)
 	ivshmem.load(node);
 	transient.load(node);
 	vcpu_map.load(node);
+	probe_with_ssh.load(node);
+	probe_hostname.load(node);
 }
 
 //

@@ -124,6 +124,8 @@ struct Start :
 	Optional<Device_ivshmem> ivshmem;
 	Optional<bool> transient;
 	Optional<std::vector<std::vector<unsigned int>>> vcpu_map;
+	Optional<bool> probe_with_ssh;
+	Optional<std::string> probe_hostname;
 };
 
 /**
