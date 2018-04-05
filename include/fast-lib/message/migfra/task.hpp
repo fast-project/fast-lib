@@ -217,6 +217,39 @@ struct Migrate :
 };
 
 /**
+ * \brief Task to evacuate all domains from a node.
+ */
+struct Evacuate :
+	public Task
+{
+	Evacuate();
+	/**
+	 * \brief Constructor for Evacuate task.
+	 *
+	 * \param destinations List of hosts to migrate to.
+	 * \param mode Evacuation mode (auto/compact/scatter).
+	 * \param overbooking Allows overbooking of destination nodes.
+	 * \param migration_type Option to enable live migration.
+	 * \param rdma_migration Option to enable rdma migration.
+	 * \param concurrent_execution Execute this Task in dedicated thread.
+	 * \param pscom_hook_procs Number of processes to suspend during migration as string or "auto" for auto detection.
+	 * \param time_measurement Measure execution time and send in Result.
+	 */
+	Evacuate(std::vector<std::string> destinations, std::string mode, bool overbooking, std::string migration_type, bool rdma_migration, bool concurrent_execution, std::string pscom_hook_procs, bool time_measurement);
+
+	YAML::Node emit() const override;
+	void load(const YAML::Node &node) override;
+
+    std::vector<std::string> destinations;
+    Optional<std::string> mode;
+    Optional<bool> overbooking;
+	Optional<std::string> migration_type;
+	Optional<bool> rdma_migration;
+	Optional<std::string> pscom_hook_procs;
+	Optional<std::string> transport;
+};
+
+/**
  * \brief Task to repin vcpus of a virtual machine.
  */
 struct Repin :
@@ -295,6 +328,7 @@ YAML_CONVERT_IMPL(fast::msg::migfra::Start)
 YAML_CONVERT_IMPL(fast::msg::migfra::Stop)
 YAML_CONVERT_IMPL(fast::msg::migfra::Swap_with)
 YAML_CONVERT_IMPL(fast::msg::migfra::Migrate)
+YAML_CONVERT_IMPL(fast::msg::migfra::Evacuate)
 YAML_CONVERT_IMPL(fast::msg::migfra::Repin)
 YAML_CONVERT_IMPL(fast::msg::migfra::Suspend)
 YAML_CONVERT_IMPL(fast::msg::migfra::Resume)
