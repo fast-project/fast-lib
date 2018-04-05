@@ -208,6 +208,7 @@ struct Migrate :
 
 	std::string vm_name;
 	std::string dest_hostname;
+	Optional<unsigned int> retry_counter;
 	Optional<std::string> migration_type;
 	Optional<bool> rdma_migration;
 	Optional<std::string> pscom_hook_procs;
@@ -243,6 +244,7 @@ struct Evacuate :
     std::vector<std::string> destinations;
     Optional<std::string> mode;
     Optional<bool> overbooking;
+	Optional<unsigned int> retry_counter;
 	Optional<std::string> migration_type;
 	Optional<bool> rdma_migration;
 	Optional<std::string> pscom_hook_procs;
