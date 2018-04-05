@@ -361,6 +361,7 @@ void Swap_with::load(const YAML::Node &node)
 //
 
 Migrate::Migrate() :
+	retry_counter("retry_counter"),
 	migration_type("migration-type"),
 	rdma_migration("rdma-migration"),
 	pscom_hook_procs("pscom-hook-procs"),
@@ -374,6 +375,7 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	Task::Task(concurrent_execution, time_measurement),
 	vm_name(std::move(vm_name)),
 	dest_hostname(std::move(dest_hostname)),
+	retry_counter("retry_counter"),
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", std::to_string(pscom_hook_procs)),
@@ -387,6 +389,7 @@ Migrate::Migrate(std::string vm_name, std::string dest_hostname, std::string mig
 	Task::Task(concurrent_execution, time_measurement),
 	vm_name(std::move(vm_name)),
 	dest_hostname(std::move(dest_hostname)),
+	retry_counter("retry_counter"),
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
@@ -402,6 +405,7 @@ YAML::Node Migrate::emit() const
 	node["vm-name"] = vm_name;
 	node["destination"] = dest_hostname;
 	YAML::Node params = node["parameter"];
+	merge_node(params, retry_counter.emit());
 	merge_node(params, migration_type.emit());
 	merge_node(params, rdma_migration.emit());
 	merge_node(params, pscom_hook_procs.emit());
@@ -419,6 +423,7 @@ void Migrate::load(const YAML::Node &node)
 	fast::load(vm_name, node["vm-name"]);
 	fast::load(dest_hostname, node["destination"]);
 	if (node["parameter"]) {
+		retry_counter.load(node["parameter"]);
 		migration_type.load(node["parameter"]);
 		rdma_migration.load(node["parameter"]);
 		pscom_hook_procs.load(node["parameter"]);
@@ -427,6 +432,65 @@ void Migrate::load(const YAML::Node &node)
 		vcpu_map.load(node["parameter"]);
 	}
 }
+
+//
+// Evacuate implementation
+//
+
+Evacuate::Evacuate() :
+	mode("mode"),
+	overbooking("overbooking"),
+	retry_counter("retry_counter"),
+	migration_type("migration-type"),
+	rdma_migration("rdma-migration"),
+	pscom_hook_procs("pscom-hook-procs"),
+	transport("transport")
+{
+}
+
+Evacuate::Evacuate(std::vector<std::string> destinations, std::string mode, bool overbooking, std::string migration_type, bool rdma_migration, bool concurrent_execution, std::string pscom_hook_procs, bool time_measurement) :
+	Task::Task(concurrent_execution, time_measurement),
+	destinations(std::move(destinations)),
+	mode("mode", std::move(mode)),
+	overbooking("overbooking", overbooking),
+	retry_counter("retry_counter"),
+	migration_type("migration-type", std::move(migration_type)),
+	rdma_migration("rdma-migration", rdma_migration),
+	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
+	transport("transport")
+{
+}
+
+YAML::Node Evacuate::emit() const
+{
+	YAML::Node node = Task::emit();
+	node["destinations"] = destinations;
+	YAML::Node params = node["parameter"];
+	merge_node(params, mode.emit());
+	merge_node(params, overbooking.emit());
+	merge_node(params, retry_counter.emit());
+	merge_node(params, migration_type.emit());
+	merge_node(params, rdma_migration.emit());
+	merge_node(params, pscom_hook_procs.emit());
+	merge_node(params, transport.emit());
+	return node;
+}
+
+void Evacuate::load(const YAML::Node &node)
+{
+	Task::load(node);
+	fast::load(destinations, node["destinations"]);
+	if (node["parameter"]) {
+		mode.load(node["parameter"]);
+		overbooking.load(node["parameter"]);
+		retry_counter.load(node["parameter"]);
+		migration_type.load(node["parameter"]);
+		rdma_migration.load(node["parameter"]);
+		pscom_hook_procs.load(node["parameter"]);
+		transport.load(node["parameter"]);
+	}
+}
+
 
 //
 // Repin implementation
