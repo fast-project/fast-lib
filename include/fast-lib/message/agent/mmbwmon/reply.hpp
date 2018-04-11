@@ -37,7 +37,7 @@ struct reply : public fast::Serializable
 	void load(const YAML::Node &node) override;
 
 	std::vector<size_t> cores;
-    double result;
+	double result;
 };
 
 }

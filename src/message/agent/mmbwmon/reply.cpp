@@ -20,7 +20,7 @@ YAML::Node reply::emit() const
 void reply::load(const YAML::Node &node)
 {
 	fast::load(cores, node["cores"]);
-    fast::load(result, node["result"]);
+	fast::load(result, node["result"]);
 }
 
 }

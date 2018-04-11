@@ -6,7 +6,7 @@ namespace fast {
 		class Dev_null
 		{
 		};
-	       	extern Dev_null dev_null;
+		extern Dev_null dev_null;
 		template<typename T> Dev_null & operator<<(Dev_null &dest, T)
 		{
 			return dest;

@@ -18,9 +18,9 @@ namespace migfra {
 // Converts integer type numbers to string in hex format.
 static std::string to_hex_string(unsigned int integer, int digits, bool show_base = true)
 {
-        std::stringstream ss;
-        ss << (show_base ? "0x" : "") << std::hex << std::setfill('0') << std::setw(digits) << +integer;
-        return ss.str();
+	std::stringstream ss;
+	ss << (show_base ? "0x" : "") << std::hex << std::setfill('0') << std::setw(digits) << +integer;
+	return ss.str();
 }
 
 
