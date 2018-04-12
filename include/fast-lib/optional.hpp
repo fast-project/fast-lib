@@ -90,6 +90,7 @@ Optional<T>::Optional(std::string tag, const T &rhs) :
 
 template<typename T>
 Optional<T>::Optional(const Optional<T> &rhs) :
+	Serializable(rhs),
 	tag(rhs.tag),
 	ptr(rhs.is_valid() ? new T(*rhs.ptr) : nullptr),
 	valid(rhs.valid)
@@ -98,6 +99,7 @@ Optional<T>::Optional(const Optional<T> &rhs) :
 
 template<typename T>
 Optional<T>::Optional(Optional<T> &&rhs) noexcept :
+	Serializable(rhs),
 	tag(std::move(rhs.tag)),
 	ptr(std::move(rhs.ptr)),
 	valid(rhs.valid)

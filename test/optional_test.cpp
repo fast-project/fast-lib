@@ -71,6 +71,39 @@ struct Task_tester :
 		fructose_assert(p.get().id == 1);
 		fructose_assert(p->id == 1);
 	}
+
+	void optional_copy(const std::string &test_name)
+	{
+		(void) test_name;
+		std::string name1_str = "bob";
+		std::string name2_str = "baumeister";
+		Optional<std::string> name1("name1", name1_str);
+		Optional<std::string> name2("name2", name2_str);
+		// Copy constructor
+		Optional<std::string> copy_constr(name1);
+		fructose_assert(name1.is_valid());
+		fructose_assert(copy_constr.is_valid());
+		fructose_assert_eq(name1.get(), name1_str);
+		fructose_assert_eq(copy_constr.get(), name1_str);
+		// Copy assignment
+		Optional<std::string> copy_assign("empty");
+		copy_assign = name2;
+		fructose_assert(name2.is_valid());
+		fructose_assert(copy_assign.is_valid());
+		fructose_assert_eq(name2.get(), name2_str);
+		fructose_assert_eq(copy_assign.get(), name2_str);
+		// Move constructor
+		Optional<std::string> move_constr(std::move(name1));
+		fructose_assert(!name1.is_valid());
+		fructose_assert(move_constr.is_valid());
+		fructose_assert_eq(move_constr.get(), name1_str);
+		// Move assignment
+		Optional<std::string> move_assign("empty_move");
+		move_assign = std::move(name2);
+		fructose_assert(!name2.is_valid());
+		fructose_assert(move_assign.is_valid());
+		fructose_assert_eq(move_assign.get(), name2_str);
+	}
 };
 
 int main(int argc, char **argv)
@@ -78,5 +111,6 @@ int main(int argc, char **argv)
 	Task_tester tests;
 	tests.add_test("optional-bool", &Task_tester::optional_bool);
 	tests.add_test("optional-struct", &Task_tester::optional_struct);
+	tests.add_test("optional-copy", &Task_tester::optional_copy);
 	return tests.run(argc, argv);
 }
