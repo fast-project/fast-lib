@@ -241,9 +241,9 @@ struct Evacuate :
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-    std::vector<std::string> destinations;
-    Optional<std::string> mode;
-    Optional<bool> overbooking;
+	std::vector<std::string> destinations;
+	Optional<std::string> mode;
+	Optional<bool> overbooking;
 	Optional<unsigned int> retry_counter;
 	Optional<std::string> migration_type;
 	Optional<bool> rdma_migration;

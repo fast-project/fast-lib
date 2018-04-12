@@ -35,7 +35,7 @@ struct stop : public fast::Serializable
 	YAML::Node emit() const override;
 	void load(const YAML::Node &node) override;
 
-    std::string cgroup;
+	std::string cgroup;
 };
 
 }
