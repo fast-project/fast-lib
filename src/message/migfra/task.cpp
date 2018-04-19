@@ -457,7 +457,8 @@ Evacuate::Evacuate() :
 	migration_type("migration-type"),
 	rdma_migration("rdma-migration"),
 	pscom_hook_procs("pscom-hook-procs"),
-	transport("transport")
+	transport("transport"),
+	vm_name("vm-name")
 {
 }
 
@@ -470,7 +471,8 @@ Evacuate::Evacuate(std::vector<std::string> destinations, std::string mode, bool
 	migration_type("migration-type", std::move(migration_type)),
 	rdma_migration("rdma-migration", rdma_migration),
 	pscom_hook_procs("pscom-hook-procs", std::move(pscom_hook_procs)),
-	transport("transport")
+	transport("transport"),
+	vm_name("vm-name")
 {
 }
 
@@ -486,6 +488,7 @@ YAML::Node Evacuate::emit() const
 	merge_node(params, rdma_migration.emit());
 	merge_node(params, pscom_hook_procs.emit());
 	merge_node(params, transport.emit());
+	merge_node(node, vm_name.emit());
 	return node;
 }
 
@@ -502,6 +505,7 @@ void Evacuate::load(const YAML::Node &node)
 		pscom_hook_procs.load(node["parameter"]);
 		transport.load(node["parameter"]);
 	}
+	vm_name.load(node);
 }
 
 
