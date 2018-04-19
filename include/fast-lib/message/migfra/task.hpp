@@ -249,6 +249,9 @@ struct Evacuate :
 	Optional<bool> rdma_migration;
 	Optional<std::string> pscom_hook_procs;
 	Optional<std::string> transport;
+
+	// Used internally by migration framework
+	Optional<std::string> vm_name;
 };
 
 /**
