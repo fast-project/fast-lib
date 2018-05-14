@@ -72,7 +72,7 @@ std::string Task_container::type(bool enable_result_format) const
 {
 	std::array<std::string, 8> types;
 	if (enable_result_format)
-		types = {{"vm started", "vm stopped", "vm migrated", "node evacuated" "vm repinned", "vm suspended", "vm resumed", "quit"}};
+		types = {{"vm started", "vm stopped", "vm migrated", "node evacuated", "vm repinned", "vm suspended", "vm resumed", "quit"}};
 	else
 		types = {{"start vm", "stop vm", "migrate vm", "evacuate node", "repin vm", "suspend vm", "resume vm", "quit"}};
 	if (tasks.empty())
