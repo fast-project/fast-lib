@@ -25,43 +25,154 @@ class Optional :
 public:
 	using value_type = T;
 
+	/**
+	 * \brief Construct an empty Optional.
+	 *
+	 * \param tag The tag used for serialization.
+	 */
 	Optional(std::string tag) noexcept;
+	/**
+	 * \brief Construct an Optional with an object passed using ptr.
+	 *
+	 * \param tag The tag used for serialization.
+	 * \param ptr A pointer to the object to be used.
+	 */
 	Optional(std::string tag, std::unique_ptr<T> ptr) noexcept;
-
+	/**
+	 * \brief Construct an Optional with an object copied from val.
+	 *
+	 * \param tag The tag used for serialization.
+	 * \param val The value used to initilize the contained object.
+	 */
 	Optional(std::string tag, const T &val);
+	/**
+	 * \brief Copy construct from l-value.
+	 *
+	 * \param rhs The Optional to copy from.
+	 */
 	Optional(const Optional<T> &rhs);
+	/**
+	 * \brief Move construct from r-value (e.g. temporary objects).
+	 *
+	 * \param rhs The Optional to copy from.
+	 */
 	Optional(Optional<T> &&rhs) noexcept;
-	Optional<T> & operator=(const T &rhs);
-	Optional<T> & operator=(T &&rhs);
+	/**
+	 * \brief Copy-assign a value to this Optional from an l-value.
+	 *
+	 * \param val The value to be assigned.
+	 */
+	Optional<T> & operator=(const T &val);
+	/**
+	 * \brief Move-assign a value to this Optional from an r-value.
+	 *
+	 * \param val The value to be assigned.
+	 */
+	Optional<T> & operator=(T &&val);
+	/**
+	 * \brief Copy-assign a value to this Optional from another Optional.
+	 *
+	 * \param rhs Another optional to copy assign from.
+	 */
 	Optional<T> & operator=(Optional<T> rhs);
 
+	/**
+	 * \brief Check two Optionals for equality in validity and value.
+	 *
+	 * \param rhs The other Optional to compare with.
+	 */
 	bool operator==(const Optional<T> &rhs) const;
-	bool operator==(const T &rhs) const;
+	/**
+	 * \brief Check this Optional and a value for equality.
+	 *
+	 * \param val The value to compare with.
+	 */
+	bool operator==(const T &val) const;
 
+	/**
+	 * \brief Check if this Optional is valid i.e. contains a value.
+	 */
 	bool is_valid() const noexcept;
+	/**
+	 * \brief bool operator to make checks for validity implicit.
+	 */
 	operator bool() const noexcept;
 
+	/**
+	 * \brief Get reference to value of the contained object and throw exception if not valid.
+	 */
 	T & get();
+	/**
+	 * \brief Get const reference to value of the contained object and throw exception if not valid.
+	 */
 	const T & get() const;
 
+	/**
+	 * \brief Use get_or to simplify checks for validity with subsequent getting of value.
+	 *
+	 * \param default_value This value is returned if this Optional is not valid.
+	 * Usage:
+	 * `int num = opt_num.get_or(42);`
+	 * num will be either the value of opt_num if it is valid or the default value 42 if not.
+	 */
 	constexpr const T & get_or(const T &default_value) const;
 
+	/**
+	 * \brief Shortcut for get().
+	 */
 	T & operator*();
+	/**
+	 * \brief Shortcut for get().
+	 */
 	const T & operator*() const;
 
+	/**
+	 * \brief Shortcut for get() on pointer.
+	 */
 	T * operator->();
+	/**
+	 * \brief Shortcut for get() on pointer.
+	 */
 	const T * operator->() const;
 
+	/**
+	 * \brief Return the tag of this optional.
+	 */
 	std::string get_tag() const;
 
-	void set(const T &rhs);
-	void set(T &&rhs);
+	/**
+	 * \brief Set the value of this Optional.
+	 *
+	 * \param val The value to initilize the object from (copy).
+	 */
+	void set(const T &val);
+	/**
+	 * \brief Set the value of this Optional.
+	 *
+	 * \param val The value to initilize the object from (move).
+	 */
+	void set(T &&val);
 
+	/**
+	 * \brief Used to serialize to YAML.
+	 */
 	YAML::Node emit() const override;
+	/**
+	 * \brief Used to deserialize from YAML.
+	 */
 	void load(const YAML::Node &node) override;
 private:
+	/**
+	 * \brief The tag of this Optional used for serialization.
+	 */
 	std::string tag;
+	/**
+	 * \brief The pointer to the contained object.
+	 */
 	std::unique_ptr<T> ptr;
+	/**
+	 * \brief Denote if the Optional actually contains a valid object.
+	 */
 	bool valid;
 };
 
@@ -81,9 +192,9 @@ Optional<T>::Optional(std::string tag, std::unique_ptr<T> ptr) noexcept :
 }
 
 template<typename T>
-Optional<T>::Optional(std::string tag, const T &rhs) :
+Optional<T>::Optional(std::string tag, const T &val) :
 	tag(std::move(tag)),
-	ptr(new T(rhs)),
+	ptr(new T(val)),
 	valid(true)
 {
 }
@@ -108,17 +219,17 @@ Optional<T>::Optional(Optional<T> &&rhs) noexcept :
 }
 
 template<typename T>
-Optional<T> & Optional<T>::operator=(const T &rhs)
+Optional<T> & Optional<T>::operator=(const T &val)
 {
-	ptr.reset(new T(rhs));
+	ptr.reset(new T(val));
 	valid = true;
 	return *this;
 }
 
 template<typename T>
-Optional<T> & Optional<T>::operator=(T &&rhs)
+Optional<T> & Optional<T>::operator=(T &&val)
 {
-	ptr.reset(new T(std::move(rhs)));
+	ptr.reset(new T(std::move(val)));
 	valid = true;
 	return *this;
 }

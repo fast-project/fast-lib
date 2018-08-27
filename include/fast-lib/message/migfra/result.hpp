@@ -25,16 +25,52 @@ namespace migfra {
  */
 struct Result : public fast::Serializable
 {
+	/**
+ 	 * \brief Default construct Result task.
+ 	 */
 	Result() = default;
+	/**
+ 	 * \brief Construct Result task.
+ 	 * 
+ 	 * \param vm_name Name of the domain the result concerns.
+ 	 * \param status String of the result status.
+ 	 * \param details String containing further information especially on failure.
+ 	 */
 	Result(std::string vm_name, std::string status, std::string details = "");
+	/**
+ 	 * \brief Construct Result task with time measurement.
+ 	 *
+ 	 * \param vm_name Name of the domain the result concerns.
+ 	 * \param status String of the result status.
+ 	 * \param time_measurement Pass Time_measurement object containing timing of phases.
+ 	 * \param details String containing further information especially on failure.
+ 	 */
 	Result(std::string vm_name, std::string status, Time_measurement time_measurement, std::string details = "");
 
+	/**
+ 	 * \brief Serialize Result to YAML.
+ 	 */
 	YAML::Node emit() const override;
+	/**
+ 	 * \brief Initialize Result from YAML.
+ 	 */
 	void load(const YAML::Node &node) override;
 
+	/**
+ 	 * \brief Name of the domain the result concerns.
+ 	 */
 	std::string vm_name;
+	/**
+ 	 * String of the result status.
+ 	 */
 	std::string status;
+	/**
+ 	 * \brief String containing further information especially on failure.
+ 	 */
 	std::string details;
+	/**
+ 	 * \brief Time_measurement object containing timing of phases.
+ 	 */
 	Time_measurement time_measurement;
 };
 
@@ -46,15 +82,45 @@ struct Result : public fast::Serializable
  */
 struct Result_container : public fast::Serializable
 {
+	/**
+ 	 * \brief Default construct Result_container.
+ 	 */
 	Result_container() = default;
+	/**
+ 	 * \brief Construct Result_container from YAML string.
+ 	 *
+ 	 * \param yaml_str String using YAML to describe Result.
+ 	 */
 	Result_container(const std::string &yaml_str);
+	/**
+ 	 * \brief Construct Result_container.
+ 	 *
+ 	 * \param title Type of tasks the results are from.
+ 	 * \param results Vector of results.
+ 	 * \param id Used to track tasks and corresponding results.
+ 	 */
 	Result_container(std::string title, std::vector<Result> results, std::string id = "");
 
+	/**
+ 	 * \brief Serialize all Results to YAML.
+ 	 */
 	YAML::Node emit() const override;
+	/**
+ 	 * \brief Initialize Results from YAML.
+ 	 */
 	void load(const YAML::Node &node) override;
 
+	/**
+ 	 * \brief Type of tasks the results are from.
+ 	 */
 	std::string title;
+	/**
+ 	 * \brief Vector of results.
+ 	 */
 	std::vector<Result> results;
+	/**
+ 	 * \brief Used to track tasks and corresponding results.
+ 	 */
 	std::string id;
 };
 

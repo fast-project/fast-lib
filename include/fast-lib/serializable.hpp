@@ -18,19 +18,47 @@
 
 namespace fast
 {
+	/**
+ 	 * \brief Other classes can be derived from Serilizable to enable YAML serialization.
+ 	 *
+ 	 * Derived classes should implement emit() and load().
+ 	 */
 	class Serializable
 	{
-//		friend struct convert<Serializable>;
 	public:
+		/**
+ 		 * \brief Default constructor.
+ 		 */
  		Serializable() = default;
+		/**
+ 		 * \brief Default copy constructor.
+ 		 */
 		Serializable(const Serializable&) = default;
+		/**
+ 		 * \brief Default copy assign operator.
+ 		 */
 		Serializable & operator=(const Serializable &rhs) = default;
+		/**
+ 		 * \brief Default destructor.
+ 		 */
 		virtual ~Serializable() = default;
 
+		/**
+ 		 * \brief Override this function to define how the derived class should be serialized.
+ 		 */
 		virtual YAML::Node emit() const = 0;
+		/**
+ 		 * \brief Override this function to define how the derived class should be deserialized.
+ 		 */
 		virtual void load(const YAML::Node &node) = 0;
 
+		/**
+ 		 * \brief Convert to YAML string using emit.
+ 		 */
 		virtual std::string to_string() const;
+		/**
+ 		 * \brief Initilize from YAML string using load.
+ 		 */
 		virtual void from_string(const std::string &str);
 	};
 
@@ -107,8 +135,12 @@ namespace YAML
 namespace fast {
 namespace yaml {
 
-// merges rhs into lhs
-void merge_node(YAML::Node &lhs, const YAML::Node &rhs);
+	/**
+ 	 * \brief Merge two YAML nodes.
+ 	 *
+ 	 * Uses this in emit to merge with emitted nodes from composed classes.
+ 	 */
+	void merge_node(YAML::Node &lhs, const YAML::Node &rhs);
 
 }
 }

@@ -161,6 +161,7 @@ public:
 	 *
 	 * This is a blocking method, which waits until a message is received.
 	 * The default subscribe topic can be set in the constructor.
+	 * \param actual_topic Used to return the actual topic the message came from. Useful for listening on wildcard topics.
 	 */
 	std::string get_message(std::string *actual_topic = nullptr) const override;
 
@@ -169,6 +170,7 @@ public:
 	 *
 	 * This is a blocking method, which waits until a message is received.
 	 * \param topic The topic to listen on for a message.
+	 * \param actual_topic Used to return the actual topic the message came from. Useful for listening on wildcard topics.
 	 */
 	std::string get_message(const std::string &topic, std::string *actual_topic = nullptr) const;
 
@@ -178,6 +180,7 @@ public:
 	 * This is a blocking method, which waits until a message is received or timeout is exceeded.
 	 * The default subscribe topic can be set in the constructor.
 	 * \param duration The duration until timeout.
+	 * \param actual_topic Used to return the actual topic the message came from. Useful for listening on wildcard topics.
 	 */
 	std::string get_message(const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) const;
 
@@ -187,9 +190,11 @@ public:
 	 * This is a blocking method, which waits until a message is received or timeout is exceeded.
 	 * \param topic The topic to listen on for a message.
 	 * \param duration The duration until timeout.
+	 * \param actual_topic Used to return the actual topic the message came from. Useful for listening on wildcard topics.
 	 */
 	std::string get_message(const std::string &topic,
-				const std::chrono::duration<double> &duration, std::string *actual_topic = nullptr) const;
+				const std::chrono::duration<double> &duration,
+				std::string *actual_topic = nullptr) const;
 
 	/**
 	 * \brief Connect to the mosquitto broker.
@@ -223,16 +228,22 @@ private:
 	void resubscribe() const;
 	/**
 	 * \brief Callback for established connections.
+	 *
+	 * \param rc Return code to notify this callback on the current status.
 	 */
 	void on_connect(int rc) override;
 
 	/**
 	 * \brief Callback for disconnected connections.
+	 *
+	 * \param rc Return code to notify this callback on the current status.
 	 */
 	void on_disconnect(int rc) override;
 
 	/**
 	 * \brief Callback for received messages.
+	 *
+	 * \param msg The message struct received by mosquitto.
 	 */
 	void on_message(const mosquitto_message *msg) override;
 

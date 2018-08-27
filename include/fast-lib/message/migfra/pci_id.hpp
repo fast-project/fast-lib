@@ -18,28 +18,65 @@ namespace fast {
 namespace msg {
 namespace migfra {
 
-// Contains the vendor id and device id to identify a PCI device type.
+/**
+ * \brief Contains the vendor id and device id to identify a PCI device type.
+ */
 struct PCI_id :
 	public fast::Serializable
 {
 	using vendor_t = unsigned short;
 	using device_t = unsigned short;
 
+	/**
+ 	 * \brief Construct PCI_id.
+ 	 */
 	PCI_id(vendor_t vendor, device_t device);
-	// Default (copy-)constructor and assignment for use in std::vector.
+	/**
+ 	 * \brief Default constructor.
+ 	 */
 	PCI_id() = default;
+	/**
+ 	 * \brief Default copy constructor.
+ 	 */
 	PCI_id(const PCI_id &) = default;
+	/**
+ 	 * \brief Default assignment.
+ 	 */
 	PCI_id & operator=(const PCI_id &) = default;
 
+	/**
+ 	 * \brief Check if two PCI_ids are equal.
+ 	 */
 	bool operator==(const PCI_id &rhs) const;
+	/**
+ 	 * \brief Convert vendor part to hexadecimal format.
+ 	 */
 	std::string vendor_hex() const;
+	/**
+ 	 * \brief Convert device part to hexadecimal format.
+ 	 */
 	std::string device_hex() const;
+	/**
+ 	 * \brief Convert to formatted string.
+ 	 */
 	std::string str() const;
 
+	/**
+ 	 * \brief Serialize to YAML.
+ 	 */
 	YAML::Node emit() const override;
+	/**
+ 	 * \brief Initialize from YAML.
+ 	 */
 	void load(const YAML::Node &node) override;
 
+	/**
+ 	 * \brief vendor ID part.
+ 	 */
 	vendor_t vendor;
+	/**
+ 	 * \brief device ID part.
+ 	 */
 	device_t  device;
 };
 

@@ -3,6 +3,16 @@
 
 namespace fast {
 	namespace log {
+		/**
+		 * \brief Logging class used as a sink for disabled logging.
+		 *
+		 * Use FASTLIB_LOG_INIT to initilize the logs.
+		 * FASTLIB_LOG_SET_LEVEL may be used to set an urgency level for a log in local scope (e.g. in a function).
+		 * FASTLIB_LOG_SET_LEVEL_GLOBAL sets an urgency level in global scope (e.g. at the top of the file).
+		 * By setting the urgency level for a log only messages with equally or more urgent levels are actually logged while the other messages are discarded.
+		 * Use FASTLIB_LOG(var, lvl) as a stream sink for logging: `FASTLIB_LOG(mylog, trace) << "Important log msg!";`
+		 * If FASTLIB_ENABLE_LOGGING is defined, logging is enabled, else there is no logging done.
+		 */
 		class Dev_null
 		{
 		};
