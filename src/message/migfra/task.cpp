@@ -231,13 +231,14 @@ Start::Start() :
 {
 }
 
-Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
+Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, std::vector<PCI_addr> pci_addrs, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name("vm-name", std::move(vm_name)),
 	vcpus("vcpus", vcpus),
 	memory("memory", memory),
 	memnode_map("memnode-map"),
 	pci_ids(std::move(pci_ids)),
+	pci_addrs(std::move(pci_addrs)),
 	xml("xml"),
 	ivshmem("ivshmem"),
 	transient("transient"),
@@ -247,13 +248,14 @@ Start::Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std:
 {
 }
 
-Start::Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution) :
+Start::Start(std::string xml, std::vector<PCI_id> pci_ids, std::vector<PCI_addr> pci_addrs, bool concurrent_execution) :
 	Task::Task(concurrent_execution),
 	vm_name("vm-name"),
 	vcpus("vcpus"),
 	memory("memory"),
 	memnode_map("memnode-map"),
 	pci_ids(std::move(pci_ids)),
+	pci_addrs(std::move(pci_addrs)),
 	xml("xml", xml),
 	ivshmem("ivshmem"),
 	transient("transient"),
@@ -277,6 +279,8 @@ YAML::Node Start::emit() const
 	merge_node(node, transient.emit());
 	if (!pci_ids.empty())
 		node["pci-ids"] = pci_ids;
+	if (!pci_addrs.empty())
+		node["dev"] = pci_addrs;
 	merge_node(node, vcpu_map.emit());
 	if (vcpu_map.is_valid())
 		node[vcpu_map.get_tag()].SetStyle(YAML::EmitterStyle::Flow);
@@ -293,6 +297,7 @@ void Start::load(const YAML::Node &node)
 	memory.load(node);
 	memnode_map.load(node);
 	fast::load(pci_ids, node["pci-ids"], std::vector<PCI_id>());
+	fast::load(pci_addrs, node["devs"], std::vector<PCI_addr>());
 	xml.load(node);
 	ivshmem.load(node);
 	transient.load(node);

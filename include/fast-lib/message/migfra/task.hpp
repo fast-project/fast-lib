@@ -11,6 +11,7 @@
 
 #include <fast-lib/message/migfra/ivshmem.hpp>
 #include <fast-lib/message/migfra/pci_id.hpp>
+#include <fast-lib/message/migfra/pci_addr.hpp>
 #include <fast-lib/message/migfra/time_measurement.hpp>
 #include <fast-lib/optional.hpp>
 #include <fast-lib/serializable.hpp>
@@ -148,7 +149,7 @@ struct Start :
  	 * \param pci_ids A vector of PCI IDs for which devices should be searched and attached.
 	 * \param concurrent_execution Execute this Task in dedicated thread.
 	 */
-	Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, bool concurrent_execution);
+	Start(std::string vm_name, unsigned int vcpus, unsigned long memory, std::vector<PCI_id> pci_ids, std::vector<PCI_addr> pci_addrs, bool concurrent_execution);
 	/**
  	 * \brief Constructor for Start task using xml.
  	 *
@@ -156,7 +157,7 @@ struct Start :
  	 * \param pci_ids A vector of PCI IDs for which devices should be searched and attached.
 	 * \param concurrent_execution Execute this Task in dedicated thread.
  	 */
-	Start(std::string xml, std::vector<PCI_id> pci_ids, bool concurrent_execution);
+	Start(std::string xml, std::vector<PCI_id> pci_ids, std::vector<PCI_addr> pci_addrs, bool concurrent_execution);
 
 	/**
  	 * \brief Serialize Start task to YAML.
@@ -184,12 +185,16 @@ struct Start :
  	 */
 	Optional<std::vector<std::vector<unsigned int>>> memnode_map;
 	/**
- 	 * \brief A vector of PCI IDs for which devices should be searched and attached.
- 	 */
+	 * \brief A vector of PCI IDs for which devices should be searched and attached.
+	 */
 	std::vector<PCI_id> pci_ids;
 	/**
- 	 * \brief Description of the domain using XML.
- 	 */
+	 * \brief A vector of PCI addrs for which devices should be attached.
+	 */
+	std::vector<PCI_addr> pci_addrs;
+	/**
+	 * \brief Description of the domain using XML.
+	 */
 	Optional<std::string> xml;
 	/**
  	 * \brief ivshmem device to assign to the domain.
